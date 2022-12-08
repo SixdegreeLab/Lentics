@@ -1,0 +1,20 @@
+{
+  "name": "data",
+  "version": "0.0.0",
+  "main": "index.tsx",
+  "license": "MIT",
+  "scripts": {
+    "lint": "TIMING=1 eslint \"**/*.ts*\""
+  },
+  "dependencies": {
+    "ethers": "^5.7.2",
+    "wagmi": "^0.8.10"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
+    "react": "^18.2.0",
+    "tsconfig": "*",
+    "typescript": "^4.5.2"
+  }
+}
