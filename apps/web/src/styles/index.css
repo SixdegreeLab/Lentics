@@ -175,3 +175,8 @@ i.code {
 div[data-lexical-editor='true'] {
   @apply outline-none;
 }
+
+.nav_link_current{
+  @apply border-b-4 border-purple-800 text-purple-800;
+}
+

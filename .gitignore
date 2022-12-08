@@ -39,4 +39,3 @@ yarn-error.log*
 # db
 db/**
 !db/db-v0.0.1.zip
-
