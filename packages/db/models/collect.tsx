@@ -2,35 +2,19 @@ import { DataTypes } from 'sequelize';
 
 import sequelize from '../connection';
 
-export const Profile = sequelize.define('Profile', {
+export const Collect = sequelize.define('Collect', {
     // Model attributes are defined here
-    profileId: {
+    txHash: {
         primaryKey: true,
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        field: 'evt_tx_hash'
     },
-    owner: {
+    txIndex: {
+        primaryKey: true,
         type: DataTypes.STRING,
         allowNull: false,
-        field: 'to'
-    },
-    handle: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    imageUri: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'imageURI'
-    },
-    followModule: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    followNftUri: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'followNFTURI'
+        field: 'evt_index'
     },
     blockTime: {
         type: DataTypes.STRING,
@@ -42,10 +26,26 @@ export const Profile = sequelize.define('Profile', {
         allowNull: false,
         field: 'evt_block_number'
     },
-    txHash: {
+    collector: {
         type: DataTypes.STRING,
         allowNull: false,
-        field: 'evt_tx_hash'
+    },
+    profileId: {
+        primaryKey: true,
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    pubId: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    rootProfileId: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    rootPubId: {
+        type: DataTypes.STRING,
+        allowNull: false
     },
     timestamp: {
         type: DataTypes.STRING,
@@ -53,6 +53,6 @@ export const Profile = sequelize.define('Profile', {
     }
 }, {
     // Other model options go here
-    tableName: "lenshub_event_profilecreated",
+    tableName: "lenshub_event_collected",
     timestamps: false
 });

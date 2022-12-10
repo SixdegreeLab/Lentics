@@ -1,18 +1,97 @@
 const typeDefs = `#graphql
   type Profile {
     profileId: String
-    creator: String
-    to: String
+    owner: String
     handle: String
-    imageURI: String
+    imageUri: String
     followModule: String
-    followNFTURI: String
+    followNftUri: String
+    blockTime: String
+    blockNumber: String
+    txHash: String
     timestamp: String
   }
 
+  type Post {
+    txHash: String
+    txIndex: String
+    blockTime: String
+    blockNumber: String
+    profileId: String
+    pubId: String
+    contentUri: String
+    collectModule: String
+    referenceModule: String
+    timestamp: String
+  }
+
+  type Follow {
+    txHash: String
+    txIndex: String
+    blockTime: String
+    blockNumber: String
+    follower: String
+    profileId: String
+    timestamp: String
+  }
+
+  type Comment {
+    txHash: String
+    txIndex: String
+    blockTime: String
+    blockNumber: String
+    profileId: String
+    pubId: String
+    contentUri: String
+    profileIdPointed: String
+    pubIdPointed: String
+    collectModule: String
+    referenceModule: String
+    timestamp: String
+  }
+
+  type Mirror {
+    txHash: String
+    txIndex: String
+    blockTime: String
+    blockNumber: String
+    profileId: String
+    pubId: String
+    profileIdPointed: String
+    pubIdPointed: String
+    referenceModule: String
+    timestamp: String
+  }
+
+  type Collect {
+    txHash: String
+    txIndex: String
+    blockTime: String
+    blockNumber: String
+    collector: String
+    profileId: String
+    pubId: String
+    rootProfileId: String
+    rootPubId: String
+    referenceModule: String
+    timestamp: String
+  }
+
+
   type Query {
+    CurrentUser: Profile
     Profiles: [Profile]!
     Profile(id: ID!): Profile
+    Posts: [Post]!
+    Post(profileId: Int!, pubId: Int!): Post
+    Follows: [Follow]!
+    Follow(profileId: Int!, follower: String!): Follow
+    Comments: [Comment]!
+    Comment(profileId: Int!, pubId: Int!): Comment
+    Mirrors: [Mirror]!
+    Mirror(profileId: Int!, pubId: Int!): Mirror
+    Collects: [Collect]!
+    Collect(profileId: Int!, pubId: Int!): Collect
   }
 `
 

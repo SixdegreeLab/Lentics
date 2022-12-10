@@ -2,35 +2,19 @@ import { DataTypes } from 'sequelize';
 
 import sequelize from '../connection';
 
-export const Profile = sequelize.define('Profile', {
+export const Follow = sequelize.define('Follow', {
     // Model attributes are defined here
-    profileId: {
+    txHash: {
         primaryKey: true,
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        field: 'evt_tx_hash'
     },
-    owner: {
+    txIndex: {
+        primaryKey: true,
         type: DataTypes.STRING,
         allowNull: false,
-        field: 'to'
-    },
-    handle: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    imageUri: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'imageURI'
-    },
-    followModule: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    followNftUri: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'followNFTURI'
+        field: 'evt_index'
     },
     blockTime: {
         type: DataTypes.STRING,
@@ -42,10 +26,15 @@ export const Profile = sequelize.define('Profile', {
         allowNull: false,
         field: 'evt_block_number'
     },
-    txHash: {
+    follower: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    profileId: {
+        primaryKey: true,
         type: DataTypes.STRING,
         allowNull: false,
-        field: 'evt_tx_hash'
+        field: 'profileIds'
     },
     timestamp: {
         type: DataTypes.STRING,
@@ -53,6 +42,6 @@ export const Profile = sequelize.define('Profile', {
     }
 }, {
     // Other model options go here
-    tableName: "lenshub_event_profilecreated",
+    tableName: "lenshub_event_followed",
     timestamps: false
 });

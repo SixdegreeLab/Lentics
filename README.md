@@ -1,6 +1,6 @@
-# Turborepo starter
+# Lentics
 
-This is an official Yarn v1 starter turborepo.
+A Turborepo with Lens data Analytics (postgres database) + Next.js powered by docker and docker-compose.
 
 ## What's inside?
 
@@ -8,68 +8,63 @@ This turborepo uses [Yarn](https://classic.yarnpkg.com/) as a package manager. I
 
 ### Apps and Packages
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `ui`: a stub React component library shared by both `web` and `docs` applications
+- `api`: backend
+- `web`: frontend
+- `data`: constants shared by apps
+- `db`: sequelize models shared by apps
+- `ui`: a stub React component library shared by apps
 - `eslint-config-custom`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `tsconfig`: `tsconfig.json`s used throughout the monorepo
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Prerequisites
+Please make sure you have Docker and docker-compose installed in your machine. Please refer here to install them :
 
-### Utilities
+1. [Docker](https://docs.docker.com/engine/install/) installation
+2. [Docker compose](https://docs.docker.com/compose/install/) installation
 
-This turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
+## Getting Started
+1. Clone this repository and change directory:
+```bash
+git clone git@github.com:codingtalent/lentics.git
+cd lentics
 ```
-cd my-turborepo
-yarn run build
+2. Setup web/api configuration (`.env`). Create a .env file which stores postgres configuration, based on the .env.example file:
+```bash
+cd apps/web
+cp .env.example .env
+cd ../api
+cp .env.example .env
 ```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
+3. To develop all apps and packages, run the following command:
 ```
-cd my-turborepo
-yarn run dev
+cd lentics
+docker-compose up -d
+```
+4. Default access URL
+```
+http://localhost: 3000  #web
+http://localhost: 3001  #api
+```
+5. To build all apps and packages, run the following commands:
+```bash
+docker exec -it lentics_turbo_1 /bin/sh
+```
+Then run:
+```bash
+yarn build
 ```
 
 **To avoid build failures, please stash the changes for package.json before build new container. Please also submit new files in the npm-packages-offline-cache directory to git if package.json has new dependencies.**
 
-### Remote Caching
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your turborepo:
-
-```
-npx turbo link
-```
 
 ## Useful Links
+- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference) for turbo Command-Line Reference
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
+- [Next.js](https://nextjs.org/)
+- [Tailwind CSS](https://tailwindcss.com)
+- [wagmi / ethers](https://wagmi.sh/) for Ethereum Hooks
+- [Apollo](https://www.apollographql.com/) for GraphQL server and client
+- [Sequelize](https://sequelize.org/docs/v6/)
 
-Learn more about the power of Turborepo:
 
-- [Pipelines](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
