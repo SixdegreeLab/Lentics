@@ -9,8 +9,11 @@ import {
 
 const resolvers = {
   Query: {
-    CurrentUser: (_, __, { profile }) => {
-      return profile;
+    // CurrentUser: (_, __, { profile }) => {
+    //   return profile;
+      CurrentUser: () => {
+        const currentUserId = '104814'; //TODO: Currently hard coded
+        return Profile.findByPk(currentUserId);
     },
     Profiles: () => {
       return Profile.findAll();
