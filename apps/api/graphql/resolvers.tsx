@@ -6,6 +6,10 @@ import {
   Post,
   Profile,
 } from 'db';
+import { QueryTypes } from 'sequelize';
+
+import sequelize from '../../../packages/db/connection';
+import summary30DaysSql from '../queries/summary30Days';
 
 const resolvers = {
   Query: {
@@ -52,6 +56,22 @@ const resolvers = {
     Collect: (_, { profileId, pubId }) => {
       return Collect.findOne({ where: { profileId: profileId + '', pubId: pubId + '' } }); //TODO: remove type convertion here once db is updated.
     },
+
+    Summary30Days: (_, { profileId }) => {
+      profileId = '29617';  //TODO: Use parameter value, with correct data type
+
+      const summary_30_days = sequelize.query(
+        summary30DaysSql,
+        {
+          replacements: { profile_id: profileId },
+          type: QueryTypes.SELECT,
+          raw: true,
+          plain: true 
+        }
+      );
+      return summary_30_days;
+    },
+
   }
 }
 

@@ -37,6 +37,16 @@ const getEnvConfig = () => {
     }
 };
 
+// Localstorage keys
+export const LS_KEYS = {
+  LENSTER_STORE: 'lenster.store',
+  TRANSACTION_STORE: 'transaction.store',
+  TIMELINE_STORE: 'timeline.store',
+  MESSAGE_STORE: 'message.store'
+};
+
+export const PRO_STATUS_API_URL = 'https://pro.lenster.xyz';
+
 export const API_URL = getEnvConfig().apiEndpoint;
 export const IS_MAINNET = API_URL === MAINNET_API_URL;
 

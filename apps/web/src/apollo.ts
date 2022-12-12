@@ -12,8 +12,7 @@ import { cursorBasedPagination } from '@lib/cursorBasedPagination';
 import { publicationKeyFields } from '@lib/keyFields';
 import parseJwt from '@lib/parseJwt';
 import axios from 'axios';
-import { API_URL, LS_KEYS } from 'data/constants';
-import result from 'lens';
+import { API_URL } from 'data/constants';
 
 const REFRESH_AUTHENTICATION_MUTATION = `
   mutation Refresh($request: RefreshRequest!) {
@@ -44,9 +43,6 @@ const retryLink = new RetryLink({
 const clearStorage = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
-  localStorage.removeItem(LS_KEYS.LENSTER_STORE);
-  localStorage.removeItem(LS_KEYS.TRANSACTION_STORE);
-  localStorage.removeItem(LS_KEYS.MESSAGE_STORE);
 };
 
 const authLink = new ApolloLink((operation, forward) => {
@@ -102,7 +98,7 @@ const authLink = new ApolloLink((operation, forward) => {
 });
 
 const cache = new InMemoryCache({
-  possibleTypes: result.possibleTypes,
+  // possibleTypes: result.possibleTypes,
   typePolicies: {
     Post: { keyFields: publicationKeyFields },
     Comment: { keyFields: publicationKeyFields },

@@ -1,10 +1,19 @@
-import '../styles/index.css' // import Tailwind globally
-import Layout from '../components/Layout' // header layout persists between page changes
-function MyApp({ Component, pageProps }) {
+import '../styles/index.css'
+
+import Loading from '@components/Shared/Loading';
+import type { AppProps } from 'next/app';
+import { lazy, Suspense } from 'react';
+
+const Providers = lazy(() => import('@components/Common/Providers'));
+
+const App = ({ Component, pageProps }: AppProps) => {
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
-  )
-}
-export default MyApp
+    <Suspense fallback={<Loading />}>
+      <Providers>
+        <Component {...pageProps} />
+      </Providers>
+    </Suspense>
+  );
+};
+
+export default App;

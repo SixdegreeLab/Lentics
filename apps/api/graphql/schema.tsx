@@ -77,6 +77,24 @@ const typeDefs = `#graphql
     timestamp: String
   }
 
+  type Summary30Days {
+    profileId: Int
+    engagementCount: Int
+    publicationCount: Int
+    followerCount: Int
+    collectCount: Int
+    revenueAmount: Float
+    engagementChangeCount: Int
+    publicationChangeCount: Int
+    followerChangeCount: Int
+    collectChangeCount: Int
+    revenueChangeAmount: Float
+    engagementChangePercentage: Float
+    publicationChangePercentage: Float
+    followerChangePercentage: Float
+    collectChangePercentage: Float
+    revenueChangePercentage: Float
+  }
 
   type Query {
     CurrentUser: Profile
@@ -92,6 +110,9 @@ const typeDefs = `#graphql
     Mirror(profileId: Int!, pubId: Int!): Mirror
     Collects: [Collect]!
     Collect(profileId: Int!, pubId: Int!): Collect
+
+    Summary30Days(profileId: Int!): Summary30Days
+
   }
 `
 
