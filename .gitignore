@@ -39,3 +39,10 @@ yarn-error.log*
 # db
 db/**
 !db/db-v0.0.1.zip
+!db/migrate
+!db/migrate/**
+!db/seeds
+!db/seeds/**
+
+# scratch
+/scratch

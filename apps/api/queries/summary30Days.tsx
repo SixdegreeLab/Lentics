@@ -19,7 +19,7 @@ mirror_summary as (
 follower_summary as (
   select count(*) as follower_count
     from lenshub_event_followed
-    where "profileIds" = :profile_id
+    where :profile_id = ANY("profileIds")
 ),
 
 collect_summary as (

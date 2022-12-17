@@ -1,9 +1,16 @@
 import type { FC } from 'react';
+import Image from 'next/image'
 
 const Loading: FC = () => {
   return (
     <div className="grid h-screen place-items-center">
-      <img className="w-28 h-28" height={112} width={112} src="/logo.svg" alt="Logo" />
+      <Image
+        src="/lentics.svg"
+        alt="Lentics Analytics"
+        className="w-28 h-28"
+        width={112}
+        height={112}
+      />
     </div>
   );
 };

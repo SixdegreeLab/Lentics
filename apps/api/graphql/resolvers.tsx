@@ -6,18 +6,17 @@ import {
   Post,
   Profile,
 } from 'db';
-import { QueryTypes } from 'sequelize';
+import { QueryTypes, Op } from 'sequelize';
 
 import sequelize from '../../../packages/db/connection';
 import summary30DaysSql from '../queries/summary30Days';
 
 const resolvers = {
   Query: {
-    // CurrentUser: (_, __, { profile }) => {
-    //   return profile;
-      CurrentUser: () => {
-        const currentUserId = '104814'; //TODO: Currently hard coded
-        return Profile.findByPk(currentUserId);
+    CurrentUser: async (_, { profileId }, { profile, isInWhiteList }) => {
+      //const currentUserId = '104814'; //TODO: Currently hard coded
+      if (isInWhiteList && profileId) return await Profile.findByPk(profileId);
+      return profile;
     },
     Profiles: () => {
       return Profile.findAll();
@@ -33,10 +32,23 @@ const resolvers = {
     },
     Follows: () => {
       //return Follow.findAll();
-      return Follow.findAll({ where: { profileId: '80959' } }); //TODO: add paging
+      //return Follow.findAll({ where: { profileIds: '80959' } }); //TODO: add paging
+      return Follow.findAll({
+        where: {
+          profileIds: {
+            [Op.overlap]: [101051]
+          }
+        }
+      })
     },
     Follow: (_, { profileId, follower }) => {
-      return Follow.findOne({ where: { profileId: profileId + '', follower: follower + '' } });
+      return Follow.findOne({
+        where: {
+          profileIds: {
+            [Op.overlap]: [profileId]
+          },
+          follower: follower
+        } });
     },
     Comments: () => {
       return Comment.findAll({ where: { profileIdPointed: '57662' } }); //TODO: add paging
@@ -57,19 +69,32 @@ const resolvers = {
       return Collect.findOne({ where: { profileId: profileId + '', pubId: pubId + '' } }); //TODO: remove type convertion here once db is updated.
     },
 
-    Summary30Days: (_, { profileId }) => {
-      profileId = '29617';  //TODO: Use parameter value, with correct data type
+    Summary30Days: (_, { profileId }, { profile, isInWhiteList }) => {
+      //profileId = '29617';  //TODO: Use parameter value, with correct data type
 
-      const summary_30_days = sequelize.query(
-        summary30DaysSql,
-        {
-          replacements: { profile_id: profileId },
-          type: QueryTypes.SELECT,
-          raw: true,
-          plain: true 
-        }
-      );
-      return summary_30_days;
+      if (isInWhiteList && profileId) {
+        return sequelize.query(
+            summary30DaysSql,
+            {
+              replacements: { profile_id: profileId },
+              type: QueryTypes.SELECT,
+              raw: true,
+              plain: true
+            }
+        );
+      }
+
+      if (profile) {
+        return sequelize.query(
+            summary30DaysSql,
+            {
+              replacements: { profile_id: profile.profileId },
+              type: QueryTypes.SELECT,
+              raw: true,
+              plain: true
+            }
+        );
+      }
     },
 
   }

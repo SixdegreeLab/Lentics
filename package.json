@@ -10,7 +10,9 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:dump": "node ./lib/db_dump.mjs",
+    "db:build": "node ./lib/db_build.mjs"
   },
   "devDependencies": {
     "eslint-config-custom": "*",

@@ -133,14 +133,13 @@ const cache = new InMemoryCache({
   }
 });
 
+// const client = new ApolloClient({
+//   link: from([retryLink, authLink, httpLink]),
+//   cache
+// });
 const client = new ApolloClient({
-  link: from([retryLink, authLink, httpLink]),
-  cache
-});
-
-export const serverlessClient = new ApolloClient({
-  link: from([httpLink]),
-  cache
+  uri: 'http://localhost:3001/api/',
+  cache: new InMemoryCache(),
 });
 
 export default client;

@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+SCRATCH=/app/scratch
+mkdir -p $SCRATCH
+if [ -e $SCRATCH/.prepared ]; then
+    echo "Prepare has already run. Will exit normally."
+    exit 0
+fi;
+echo "Preparing container. This may take a while..."
+#yarn cache clean
+# yarn config set registry https://registry.npmmirror.com
+yarn install --frozen-lockfile #--offline
+
+# Build db
+yarn run db:build -d lenticsdb
+
+touch $SCRATCH/.prepared
+echo "Done."

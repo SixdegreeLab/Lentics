@@ -31,7 +31,7 @@ const typeDefs = `#graphql
     blockTime: String
     blockNumber: String
     follower: String
-    profileId: String
+    profileIds: [ID]
     timestamp: String
   }
 
@@ -78,7 +78,7 @@ const typeDefs = `#graphql
   }
 
   type Summary30Days {
-    profileId: Int
+    profileId: ID
     engagementCount: Int
     publicationCount: Int
     followerCount: Int
@@ -97,21 +97,21 @@ const typeDefs = `#graphql
   }
 
   type Query {
-    CurrentUser: Profile
+    CurrentUser(profileId: ID): Profile
     Profiles: [Profile]!
     Profile(id: ID!): Profile
     Posts: [Post]!
-    Post(profileId: Int!, pubId: Int!): Post
+    Post(profileId: ID!, pubId: ID!): Post
     Follows: [Follow]!
-    Follow(profileId: Int!, follower: String!): Follow
+    Follow(profileId: ID!, follower: String!): Follow
     Comments: [Comment]!
-    Comment(profileId: Int!, pubId: Int!): Comment
+    Comment(profileId: ID!, pubId: ID!): Comment
     Mirrors: [Mirror]!
-    Mirror(profileId: Int!, pubId: Int!): Mirror
+    Mirror(profileId: ID!, pubId: ID!): Mirror
     Collects: [Collect]!
-    Collect(profileId: Int!, pubId: Int!): Collect
+    Collect(profileId: ID!, pubId: ID!): Collect
 
-    Summary30Days(profileId: Int!): Summary30Days
+    Summary30Days(profileId: ID): Summary30Days
 
   }
 `

@@ -1,13 +1,11 @@
 import React from "react";
-import Header from "./Header";
-import Footer from "./Footer";
+import LeftSide from "./LeftSide";
 
 const Layout = ({ children }) => {
   return (
     <div className="bg-green-50">
-      <Header />
+      <LeftSide />
       {children}
-      <Footer />
     </div>
   );
 };

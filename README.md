@@ -26,27 +26,34 @@ Please make sure you have Docker and docker-compose installed in your machine. P
 1. Clone this repository and change directory:
 ```bash
 git clone git@github.com:codingtalent/lentics.git
-cd lentics
 ```
 2. Setup web/api configuration (`.env`). Create a .env file which stores postgres configuration, based on the .env.example file:
 ```bash
+# lentics
 cd apps/web
 cp .env.example .env
 cd ../api
 cp .env.example .env
 ```
-3. To develop all apps and packages, run the following command:
+3. Prepare database files
+```bash
+# lentics
+cd db
+unzip db-v0.0.1.zip
 ```
-cd lentics
+4. To develop all apps and packages, run the following command:
+```bash
+# lentics
 docker-compose up -d
 ```
-4. Default access URL
+5. Default access URL
 ```
 http://localhost: 3000  #web
 http://localhost: 3001  #api
 ```
-5. To build all apps and packages, run the following commands:
+6. To build all apps and packages, run the following commands:
 ```bash
+# lentics
 docker exec -it lentics_turbo_1 /bin/sh
 ```
 Then run:
@@ -65,6 +72,6 @@ yarn build
 - [Tailwind CSS](https://tailwindcss.com)
 - [wagmi / ethers](https://wagmi.sh/) for Ethereum Hooks
 - [Apollo](https://www.apollographql.com/) for GraphQL server and client
-- [Sequelize](https://sequelize.org/docs/v6/)
+- [Sequelize](https://sequelize.org/docs/v6/) ORM
 
 

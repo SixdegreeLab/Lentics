@@ -114,7 +114,7 @@ const Layout: FC<Props> = ({ children }) => {
         <meta name="theme-color" content={resolvedTheme === 'dark' ? '#1b1b1d' : '#ffffff'} />
       </Head>
       <Toaster position="bottom-right" toastOptions={getToastOptions(resolvedTheme)} />
-      <div className="flex flex-col min-h-screen">
+      <div className='w-full mx-auto h-screen flex overflow-hidden'>
         <Navbar />
         {children}
       </div>

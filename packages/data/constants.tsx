@@ -65,3 +65,6 @@ export const POLYGON_MUMBAI = {
 };
 export const CHAIN_ID = IS_MAINNET ? POLYGON_MAINNET.id : POLYGON_MUMBAI.id;
 
+// Api
+export const WALLET_WHITELIST = process.env.WALLET_WHITELIST ? process.env.WALLET_WHITELIST.split(",") : [];
+

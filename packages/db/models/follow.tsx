@@ -30,9 +30,9 @@ export const Follow = sequelize.define('Follow', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    profileId: {
+    profileIds: {
         primaryKey: true,
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(DataTypes.BIGINT),
         allowNull: false,
         field: 'profileIds'
     },
