@@ -21,7 +21,10 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.0",
     "ui": "*",
-    "wagmi": "^0.8.10"
+    "wagmi": "^0.8.10",
+    "next-auth": "^4.12.2",
+    "siwe": "^2.0.5",
+    "lens": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

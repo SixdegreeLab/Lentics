@@ -4,3 +4,6 @@ export * from "./models/follow";
 export * from "./models/comment";
 export * from "./models/mirror";
 export * from "./models/collect";
+export * from "./queries/engagementCounter";
+export * from "./queries/engagementChange";
+export * from "./queries/engagementDaily";

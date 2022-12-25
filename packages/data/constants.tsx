@@ -8,6 +8,9 @@ export const SANDBOX_API_URL = 'https://api-sandbox-mumbai.lens.dev';
 export const STAGING_API_URL = 'https://staging-api-social-mumbai.lens.crtlkey.com';
 export const STAGING_SANDBOX_API_URL = 'https://staging-api-social-mumbai.sandbox.crtlkey.com';
 
+// ipfs
+export const IPFS_GATEWAY = 'https://lens.infura-ipfs.io/ipfs/';
+
 const getEnvConfig = () => {
     switch (LENS_NETWORK) {
         case 'mainnet':
@@ -68,3 +71,17 @@ export const CHAIN_ID = IS_MAINNET ? POLYGON_MAINNET.id : POLYGON_MUMBAI.id;
 // Api
 export const WALLET_WHITELIST = process.env.WALLET_WHITELIST ? process.env.WALLET_WHITELIST.split(",") : [];
 
+// CORS
+// You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
+export const CORS_ORIGINS = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : "*";
+
+// Demo User
+export const  DEMO_USER_NAME = process.env.NEXT_PUBLIC_DEMO_USER_NAME ?? "";
+export const  DEMO_USER_ADDRESS = process.env.NEXT_PUBLIC_DEMO_USER_ADDRESS ?? "";
+
+// GraphQL Server
+export const APOLLO_SERVER_URL = process.env.NEXT_PUBLIC_APOLLO_SERVER_URL ?? "";
+
+// Next-Auth
+export const NEXTAUTH_URL = process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL : "";
+export const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET ? process.env.NEXTAUTH_SECRET : "";

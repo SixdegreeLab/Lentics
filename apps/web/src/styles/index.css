@@ -8,10 +8,12 @@ html {
 }
 
 body {
-  font-family: 'CircularXXSub', sans-serif;
+  font-family: sans-serif;
   @apply bg-gray-50;
   @apply dark:bg-black;
   height: 100%;
+  max-width: 1440px;
+  margin: auto;
 }
 
 body > div{
@@ -50,6 +52,7 @@ body > div > div{
 
 .page_content{
   height: 100%;
+  width: 100%;
 }
 
 a:hover{
@@ -201,4 +204,86 @@ div[data-lexical-editor='true'] {
 
 .nav_link_current{
   @apply border-b-4 border-purple-800 text-purple-800;
+}
+
+.overview-summary{
+  align-content: flex-start;
+  flex-flow: row wrap;
+}
+
+.overview-summary-item-container{
+  flex: 0 0  33%;
+  @apply p-2;
+}
+
+.overview-summary-item{
+  width: 98%;
+  height: 100px;
+  text-align: center;
+  @apply border;
+  @apply rounded-md;
+}
+
+.overview-summary-month{
+  align-content: flex-start;
+  flex-flow: row wrap;
+}
+
+.overview-summary-month-item-container{
+  flex: 0 0 20%;
+  @apply p-2;
+}
+
+.overview-summary-month-item{
+  width: 90%;
+  height: 100px;
+  @apply p-4;
+  @apply border;
+  @apply rounded-md;
+  @apply bg-green-50;
+}
+
+.overview-summary-month-item h6{
+  @apply text-green-500;
+  @apply font-bold;
+  @apply pb-2;
+}
+
+.overview-summary-month-item div{
+  @apply text-black;
+  @apply font-bold;
+  @apply text-2xl;
+}
+
+.overview-summary-top{
+  align-content: flex-start;
+  flex-flow: row wrap;
+}
+
+.overview-summary-top-container{
+  flex: 0 0 50%;
+  @apply p-2;
+}
+
+.overview-summary-top-item{
+  width: 96%;
+  @apply border;
+  @apply rounded-md;
+}
+
+.overview-summary-top-item .title{
+  @apply px-4;
+  @apply py-2;
+  @apply border-b-2;
+}
+
+.overview-summary-top-item h5{
+  @apply text-black;
+  @apply font-bold;
+  @apply text-2xl;
+}
+
+.overview-summary-top-item .details{
+  height: 220px;
+  @apply p-4;
 }

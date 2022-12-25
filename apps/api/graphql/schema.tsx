@@ -79,27 +79,66 @@ const typeDefs = `#graphql
 
   type Summary30Days {
     profileId: ID
-    engagementCount: Int
-    publicationCount: Int
-    followerCount: Int
-    collectCount: Int
-    revenueAmount: Float
-    engagementChangeCount: Int
-    publicationChangeCount: Int
-    followerChangeCount: Int
-    collectChangeCount: Int
-    revenueChangeAmount: Float
-    engagementChangePercentage: Float
-    publicationChangePercentage: Float
-    followerChangePercentage: Float
-    collectChangePercentage: Float
-    revenueChangePercentage: Float
+    contentCountCurrent: Int
+    contentCountPrevious: Int
+    contentCountChange: Int
+    contentCountChangePercentage: Float
+    engagementScoreCurrent: Int
+    engagementScorePrevious: Int
+    engagementScoreChangeValue: Int
+    engagementScoreChangePercentage: Float
+    publicationCountCurrent: Int
+    publicationCountPrevious: Int
+    publicationCountChange: Int
+    publicationCountChangePercentage: Float
+    followerCountCurrent: Int
+    followerCountPrevious: Int
+    followerCountChange: Int
+    followerCountChangePercentage: Float
+    commentedCountCurrent: Int
+    commentedCountPrevious: Int
+    commentedCountChange: Int
+    commentedCountChangePercentage: Float
+    mirroredCountCurrent: Int
+    mirroredCountPrevious: Int
+    mirroredCountChange: Int
+    mirroredCountChangePercentage: Float
+    collectedCountCurrent: Int
+    collectedCountPrevious: Int
+    collectedCountChange: Int
+    collectedCountChangePercentage: Float
+  }
+  
+  type DailyChange {
+    profileId: ID
+    blockDate: String
+    contentCountChange: Int
+    engagementScoreChange: Int
+    publicationCountChange: Int
+    followerCountChange: Int
+    commentedCountChange: Int
+    mirroredCountChange: Int
+    collectedCountChange: Int
+  }
+  
+  type DailyStatistics {
+    profileId: ID
+    contentTypeId: Int
+    contentTypeName: String
+    blockDate: String
+    contentCount: Int
+    engagementScore: Int
+  }
+  
+  type UserAndWhiteList {
+    profile: Profile
+    isInWhiteList: Boolean
+    whitelist: [String]
   }
 
   type Query {
-    CurrentUser(profileId: ID): Profile
     Profiles: [Profile]!
-    Profile(id: ID!): Profile
+    Profile(address: String!): UserAndWhiteList
     Posts: [Post]!
     Post(profileId: ID!, pubId: ID!): Post
     Follows: [Follow]!
@@ -111,8 +150,9 @@ const typeDefs = `#graphql
     Collects: [Collect]!
     Collect(profileId: ID!, pubId: ID!): Collect
 
-    Summary30Days(profileId: ID): Summary30Days
-
+    Summary30Days(address: String!): Summary30Days
+    DailyChange(address: String!): [DailyChange]
+    DailyStatistics(address: String!): [DailyStatistics]
   }
 `
 

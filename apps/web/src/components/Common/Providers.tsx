@@ -8,6 +8,8 @@ import { polygon, polygonMumbai } from 'wagmi/chains';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
+import { SessionProvider } from "next-auth/react"
+import { Session } from "next-auth"
 
 import client from '../../apollo';
 import ErrorBoundary from './ErrorBoundary';
@@ -37,15 +39,17 @@ const wagmiClient = createClient({
   provider
 });
 
-const Providers = ({ children }: { children: ReactNode }) => {
+const Providers = ({ children, session }: { children: ReactNode, session: Session }) => {
   return (
     <ErrorBoundary>
       <WagmiConfig client={wagmiClient}>
-        <ApolloProvider client={client}>
-          <ThemeProvider defaultTheme="light" attribute="class">
-            <Layout>{children}</Layout>
-          </ThemeProvider>
-        </ApolloProvider>
+        <SessionProvider session={session} refetchInterval={0}>
+          <ApolloProvider client={client}>
+            <ThemeProvider defaultTheme="light" attribute="class">
+              <Layout>{children}</Layout>
+            </ThemeProvider>
+          </ApolloProvider>
+        </SessionProvider>
       </WagmiConfig>
     </ErrorBoundary>
   );

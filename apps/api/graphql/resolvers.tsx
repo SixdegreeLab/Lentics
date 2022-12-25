@@ -5,24 +5,27 @@ import {
   Mirror,
   Post,
   Profile,
+  engagementCounterSql,
+  engagementChangeSql,
+  engagementDailySql
 } from 'db';
 import { QueryTypes, Op } from 'sequelize';
 
 import sequelize from '../../../packages/db/connection';
-import summary30DaysSql from '../queries/summary30Days';
 
 const resolvers = {
   Query: {
-    CurrentUser: async (_, { profileId }, { profile, isInWhiteList }) => {
-      //const currentUserId = '104814'; //TODO: Currently hard coded
-      if (isInWhiteList && profileId) return await Profile.findByPk(profileId);
-      return profile;
-    },
-    Profiles: () => {
-      return Profile.findAll();
-    },
-    Profile: (_, { id }) => {
-      return Profile.findByPk(id);
+    Profile: async (_, { address }, { walletWhitelist }) => {
+      const profile = await Profile.findOne({
+        where: {
+          owner: address
+        }
+      });
+      return {
+        profile,
+        isInWhiteList: walletWhitelist.includes(profile?.owner),
+        whitelist: walletWhitelist
+      };
     },
     Posts: () => {
       return Post.findAll();
@@ -69,33 +72,60 @@ const resolvers = {
       return Collect.findOne({ where: { profileId: profileId + '', pubId: pubId + '' } }); //TODO: remove type convertion here once db is updated.
     },
 
-    Summary30Days: (_, { profileId }, { profile, isInWhiteList }) => {
-      //profileId = '29617';  //TODO: Use parameter value, with correct data type
-
-      if (isInWhiteList && profileId) {
-        return sequelize.query(
-            summary30DaysSql,
-            {
-              replacements: { profile_id: profileId },
-              type: QueryTypes.SELECT,
-              raw: true,
-              plain: true
-            }
-        );
-      }
-
+    Summary30Days: async (_, { address }) => {
+      const profile = await Profile.findOne({
+        where: {
+          owner: address
+        }
+      });
       if (profile) {
         return sequelize.query(
-            summary30DaysSql,
-            {
-              replacements: { profile_id: profile.profileId },
-              type: QueryTypes.SELECT,
-              raw: true,
-              plain: true
-            }
+          engagementCounterSql,
+          {
+            replacements: { profile_id: profile.profileId },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: true
+          }
         );
       }
     },
+    DailyChange: async (_, { address }) => {
+      const profile = await Profile.findOne({
+        where: {
+          owner: address
+        }
+      });
+      if (profile) {
+        return sequelize.query(
+          engagementChangeSql,
+          {
+            replacements: { profile_id: profile.profileId },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: false
+          }
+        );
+      }
+    },
+    DailyStatistics: async (_, { address }) => {
+      const profile = await Profile.findOne({
+        where: {
+          owner: address
+        }
+      });
+      if (profile) {
+        return sequelize.query(
+          engagementDailySql,
+          {
+            replacements: { profile_id: profile.profileId },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: false
+          }
+        );
+      }
+    }
 
   }
 }

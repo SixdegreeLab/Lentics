@@ -1,36 +1,50 @@
 import { gql } from '@apollo/client';
 import client from 'src/apollo';
+import Navbar from '@components/Shared/Navbar';
+import { getSession, GetSessionParams } from "next-auth/react";
 
 const HOME_QUERY = gql`
-query getProfile($profileId: ID!) {
-  Profile(id: $profileId) {
-    profileId,
-    owner
+  query getProfile($address: String!) {
+    Profile(address: $address) {
+      profile {
+        profileId,
+        owner
+      }
+      isInWhiteList
+      whitelist
+    }
   }
-}
 `
 
-export default function Web({ data }) {
-  // Render data...
-  console.log(data);
+export default function Web({ data, initSession }) {
   return (
-    <div className="page_content mt-[46px] bg-gray-50 sm:ml-64">
-      <div className="container p-5">
-        <h1>Web</h1>
+    <div className="page_content">
+      <Navbar initSession={initSession}/>
+      <div className="p-1">
+        <h1>Web {data?.profile?.owner}</h1>
+        <br/>
+
       </div>
     </div>
   );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps(context: GetSessionParams | undefined) {
+  const authSession = await getSession(context);
   const { data } = await client.query({
     query: HOME_QUERY,
-    variables: { "profileId": "104814" }
+    variables: { "address": "0x0e0f0C0976806D470F69d7A3855612C861863576" },
+    context: {
+      headers: {
+        Authorization: authSession ? authSession.address : ""
+      }
+    },
   });
 
   return {
     props: {
-      data,
+      data: data.Profile,
+      initSession: authSession,
     },
   }
 }
