@@ -5,6 +5,7 @@ import {
 
 import { gql } from '@apollo/client';
 import Navbar from '@components/Shared/Navbar';
+import SummaryCard from '@components/Shared/SummaryCard';
 import {
   ArrowsRightLeftIcon,
   ChatBubbleLeftRightIcon,
@@ -50,11 +51,42 @@ const SummaryQuery = gql`
   }
 `
 
+const DailyChangeQuery = gql`query DailyChange($address: String!) {
+  DailyChange(address: $address) {
+    profileId
+    blockDate
+    contentCountChange
+    engagementScoreChange
+    publicationCountChange
+    followerCountChange
+    commentedCountChange
+    mirroredCountChange
+    collectedCountChange
+  }
+}
+`
+
+
 export async function getServerSideProps(context: GetSessionParams | undefined) {
+  // 测试address
+  // 0xed74c2cdFa90CF3C824cc427a103065651e46d89
+  // 0x713A95B5923FAEe8Dc32593Ff9c0A30a3818D978
+  // 0xBAD8ca0d3Ef9e2b9D2A3149b707a879eBeA2a0BD
+  // 0x84080288433CeC65AF0fC29978b95EC9ed477da0
   const authSession = await getSession(context);
   const { data } = await client.query({
     query: SummaryQuery,
-    variables: { "address": "0x0e0f0C0976806D470F69d7A3855612C861863576" },
+    variables: { "address": context.params.address },
+    context: {
+      headers: {
+        Authorization: authSession ? authSession.address : ""
+      }
+    },
+  });
+
+  const { data: dailyChanges } = await client.query({
+    query: DailyChangeQuery,
+    variables: { "address": context.params.address },
     context: {
       headers: {
         Authorization: authSession ? authSession.address : ""
@@ -66,13 +98,15 @@ export async function getServerSideProps(context: GetSessionParams | undefined) 
     props: {
       data,
       initSession: authSession,
+      dailyChanges: dailyChanges.DailyChange,
     },
   }
 }
 
-export default function Web({ data, initSession }) {
+export default function Web({ data, initSession, dailyChanges }) {
   // Render data...data.Summary30Days.contentCountPrevious
   console.log(data);
+  console.log(dailyChanges);
   return (
       <div className="page_content">
         <Navbar initSession={initSession}/>
@@ -80,39 +114,47 @@ export default function Web({ data, initSession }) {
           <div className="mt-12">
             <div className="flex leading-9 space-x-2 mb-8">
               <h4 className="inline text-3xl font-bold">30 days summary</h4>
-              <span>with change over previous period</span>
+              <span className="text-gray-500">with change over previous period</span>
             </div>
-            <div className="flex overview-summary">
-              <div className="overview-summary-item-container">
-                <div className="overview-summary-item">
-                  Engagement { data.Summary30Days &&  data.Summary30Days.engagementScoreCurrent }
-                  / Prev { data.Summary30Days &&  data.Summary30Days.engagementScorePrevious }
-                </div>
-              </div>
-              <div className="overview-summary-item-container">
-                <div className="overview-summary-item">
-                  Publication { data.Summary30Days &&  data.Summary30Days.publicationCountCurrent }
-                  / Prev { data.Summary30Days &&  data.Summary30Days.publicationCountPrevious }
-                </div>
-              </div>
-              <div className="overview-summary-item-container">
-                <div className="overview-summary-item">
-                  Followers { data.Summary30Days &&  data.Summary30Days.followerCountCurrent }
-                  / Prev { data.Summary30Days &&  data.Summary30Days.followerCountPrevious }
-                </div>
-              </div>
-              <div className="overview-summary-item-container">
-                <div className="overview-summary-item">
-                  Collect { data.Summary30Days &&  data.Summary30Days.collectedCountCurrent }
-                  / Prev { data.Summary30Days &&  data.Summary30Days.collectedCountPrevious }
-                </div>
-              </div>
-              <div className="overview-summary-item-container">
-                <div className="overview-summary-item">
-                  Reveune { data.Summary30Days &&  data.Summary30Days.contentCountCurrent }
-                  / Prev { data.Summary30Days &&  data.Summary30Days.contentCountPrevious }
-                </div>
-              </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 xl:gap-8">
+              <SummaryCard
+                title="Engagement"
+                count={data.Summary30Days?.engagementScoreCurrent || 0}
+                data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.engagementScoreChange }))}
+                changePercent={(data.Summary30Days?.engagementScoreChangePercentage || 0)}
+              />
+              <SummaryCard
+                title="Publication"
+                count={data.Summary30Days?.publicationCountCurrent || 0}
+                data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.publicationCountChange }))}
+                changePercent={(data.Summary30Days?.publicationCountChangePercentage || 0)}
+                bgClass="bg-amber-50"
+                linearColor="#fbbf24"
+              />
+              <SummaryCard
+                title="Followers"
+                count={data.Summary30Days?.followerCountCurrent || 0}
+                data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.followerCountChange }))}
+                changePercent={(data.Summary30Days?.followerCountChangePercentage || 0)}
+                bgClass="bg-green-50"
+                linearColor="#4ade80"
+              />
+              <SummaryCard
+                title="Collect"
+                count={data.Summary30Days?.collectedCountCurrent || 0}
+                data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.collectedCountChange }))}
+                changePercent={(data.Summary30Days?.collectedCountChangePercentage || 0)}
+                bgClass="bg-red-50"
+                linearColor="#fca5a5"
+              />
+              <SummaryCard
+                title="Reveune"
+                count={data.Summary30Days?.contentCountCurrent || 0}
+                data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.contentCountChange }))}
+                changePercent={(data.Summary30Days?.contentCountChangePercentage || 0)}
+                bgClass="bg-violet-50"
+                linearColor="#c4b5fd"
+              />
             </div>
           </div>
           <div className="mt-12">

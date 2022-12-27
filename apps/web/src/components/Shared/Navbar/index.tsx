@@ -18,8 +18,12 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
+export type NavbarProps = {
+  initSession: any
+}
 
-const Navbar: FC = ({ initSession }: any) => {
+
+const Navbar: FC<NavbarProps> = ({ initSession }) => {
   const router = useRouter();
   const defaultAvatar = '/icon2.png'
   const { address, connector, isConnected } = useAccount()

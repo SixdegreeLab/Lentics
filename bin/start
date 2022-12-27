@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+#yarn cache clean
+# yarn config set registry https://registry.npmmirror.com
+yarn install --frozen-lockfile #--offline
+
 bin/prepare
 # exec tail -f /dev/null
 exec yarn run dev

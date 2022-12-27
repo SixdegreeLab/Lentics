@@ -7,9 +7,6 @@ if [ -e $SCRATCH/.prepared ]; then
     exit 0
 fi;
 echo "Preparing container. This may take a while..."
-#yarn cache clean
-# yarn config set registry https://registry.npmmirror.com
-yarn install --frozen-lockfile #--offline
 
 # Build db
 yarn run db:build -d lenticsdb

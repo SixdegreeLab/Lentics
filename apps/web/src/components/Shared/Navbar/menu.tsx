@@ -40,9 +40,9 @@ const Menu: FC = () => {
     const { pathname } = useRouter();
     return (
       <>
-        <NavItem url="/overview" name="Overview" current={pathname == '/overview'} icon="Squares2X2" />
-        <NavItem url="/publication" name="Publication" current={pathname == '/publication'} icon="PencilSquare" />
-        <NavItem url="/revenue" name="Revenue" current={pathname == '/revenue'} icon="CurrencyDollar" />
+        <NavItem url="/overview" name="Overview" current={pathname == '/overview/[address]'} icon="Squares2X2" />
+        <NavItem url="/publication" name="Publication" current={pathname == '/publication/[address]'} icon="PencilSquare" />
+        <NavItem url="/revenue" name="Revenue" current={pathname == '/revenue/[address]'} icon="CurrencyDollar" />
       </>
     );
   };
