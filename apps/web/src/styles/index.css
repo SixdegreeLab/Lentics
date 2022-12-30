@@ -229,14 +229,8 @@ div[data-lexical-editor='true'] {
   flex-flow: row wrap;
 }
 
-.overview-summary-month-item-container{
-  flex: 0 0 20%;
-  @apply p-2;
-}
-
 .overview-summary-month-item{
-  width: 90%;
-  height: 100px;
+  @apply h-full;
   @apply p-4;
   @apply border;
   @apply rounded-md;
@@ -260,13 +254,7 @@ div[data-lexical-editor='true'] {
   flex-flow: row wrap;
 }
 
-.overview-summary-top-container{
-  flex: 0 0 50%;
-  @apply p-2;
-}
-
 .overview-summary-top-item{
-  width: 96%;
   @apply border;
   @apply rounded-md;
 }
@@ -286,4 +274,10 @@ div[data-lexical-editor='true'] {
 .overview-summary-top-item .details{
   height: 220px;
   @apply p-4;
+}
+
+@layer components {
+  .min-h-56 {
+    min-height: theme(height.56);
+  }
 }

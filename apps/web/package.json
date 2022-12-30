@@ -32,7 +32,8 @@
     "@visx/gradient": "^2.17.0",
     "@visx/responsive": "^2.17.0",
     "d3-array": "^3.2.1",
-    "visx": "*"
+    "visx": "*",
+    "moment": "^2.29.4"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

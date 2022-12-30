@@ -39,11 +39,11 @@ const wagmiClient = createClient({
   provider
 });
 
-const Providers = ({ children, session }: { children: ReactNode, session: Session }) => {
+const Providers = ({ children, initSession }: { children: ReactNode, initSession: Session }) => {
   return (
     <ErrorBoundary>
       <WagmiConfig client={wagmiClient}>
-        <SessionProvider session={session} refetchInterval={0}>
+        <SessionProvider session={initSession} refetchInterval={0}>
           <ApolloProvider client={client}>
             <ThemeProvider defaultTheme="light" attribute="class">
               <Layout>{children}</Layout>

@@ -5,7 +5,7 @@ export default function Web({ initSession }) {
   // Render data...
   return (
     <div className="page_content">
-      <Navbar initSession={initSession}/>
+      <Navbar />
       <div className="p-1">
         <h1>Revenue</h1>
       </div>

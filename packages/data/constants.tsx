@@ -10,6 +10,22 @@ export const STAGING_SANDBOX_API_URL = 'https://staging-api-social-mumbai.sandbo
 
 // ipfs
 export const IPFS_GATEWAY = 'https://lens.infura-ipfs.io/ipfs/';
+export const getIPFSLink = (hash: string): string => {
+  if (!hash) {
+    return '';
+  }
+
+  return hash
+    .replace(/^Qm[1-9A-Za-z]{44}/gm, `${IPFS_GATEWAY}${hash}`)
+    .replace('https://ipfs.io/ipfs/', IPFS_GATEWAY)
+    .replace('ipfs://', IPFS_GATEWAY);
+};
+
+// lenster
+export const IMGPROXY_URL = 'https://media.lenster.xyz';
+export const getAvatarFromLenster = (url: string) => (
+  `${IMGPROXY_URL}/tr:n-avatar,tr:di-placeholder.webp/${url}`
+)
 
 const getEnvConfig = () => {
     switch (LENS_NETWORK) {
@@ -75,8 +91,7 @@ export const WALLET_WHITELIST = process.env.WALLET_WHITELIST ? process.env.WALLE
 // You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
 export const CORS_ORIGINS = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : "*";
 
-// Demo User
-export const  DEMO_USER_NAME = process.env.NEXT_PUBLIC_DEMO_USER_NAME ?? "";
+// Demo User Address
 export const  DEMO_USER_ADDRESS = process.env.NEXT_PUBLIC_DEMO_USER_ADDRESS ?? "";
 
 // GraphQL Server

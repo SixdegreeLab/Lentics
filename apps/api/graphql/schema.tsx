@@ -135,6 +135,37 @@ const typeDefs = `#graphql
     isInWhiteList: Boolean
     whitelist: [String]
   }
+  
+  type MonthlyStatistics {
+    profileId: Int
+    startDate: String
+    contentCount: Int
+    engagementScore: Int
+    publicationCount: Int
+    followerCount: Int
+    commentedCount: Int
+    mirroredCount: Int
+    collectedCount: Int
+    topEngagementPostId: Int
+    topPostEngagementScore: Int
+    topEngagementPostContentUri: String
+    topCommentedPostId: Int
+    topPostCommentedCount: Int
+    topCommentedPostContentUri: String
+    topMirroredPostId: Int
+    topPostMirroredCount: Int
+    topMirroredPostContentUri: String
+    topCollectedPostId: Int
+    topPostCollectedCount: Int
+    topCollectedPostContentUri: String
+  }
+  
+  type ProfileTopFollower {
+    followerProfileId: Int
+    followerProfileHandle: String
+    followerProfileFollowersCount: Int
+    topFollowerFollowingCount: Int
+  }
 
   type Query {
     Profiles: [Profile]!
@@ -153,6 +184,8 @@ const typeDefs = `#graphql
     Summary30Days(address: String!): Summary30Days
     DailyChange(address: String!): [DailyChange]
     DailyStatistics(address: String!): [DailyStatistics]
+    MonthlyStatistics(address: String!, date: String!): MonthlyStatistics
+    ProfileTopFollower(address: String!, date: String!): ProfileTopFollower
   }
 `
 

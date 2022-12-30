@@ -2,10 +2,10 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { getCsrfToken } from "next-auth/react"
 import { SiweMessage } from "siwe"
-import { NEXTAUTH_URL, NEXTAUTH_SECRET, IPFS_GATEWAY } from 'data/constants';
+import { NEXTAUTH_URL, NEXTAUTH_SECRET, getIPFSLink, getAvatarFromLenster } from 'data/constants';
 import { queryDefaultProfile } from 'lens';
 
-interface Session {
+export interface Session {
   address: string,
   user: {
     id: string,
@@ -53,10 +53,13 @@ export default async function auth(req: any, res: any) {
               picture: null
             };
 
-            let image = '';
-            if (picture && picture['__typename'] === 'MediaSet') {
-              image = `${IPFS_GATEWAY}${picture.original.url.split('/').pop()}`;
-            }
+            const image = picture
+              ? getAvatarFromLenster(getIPFSLink(
+                picture?.original?.url ??
+                picture?.uri ??
+                `https://avatar.tobi.sh/${profile?.ownedBy}_${profile?.handle}.png`
+              ))
+              : '';
             return {
               id: siwe.address,
               name,

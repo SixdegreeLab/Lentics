@@ -6,6 +6,7 @@ import { PencilSquareIcon, CurrencyDollarIcon, Squares2X2Icon } from '@heroicons
 
 const Menu: FC = () => {
   const router = useRouter();
+  const  DEMO_USER_ADDRESS = process.env.NEXT_PUBLIC_DEMO_USER_ADDRESS ?? "";
 
   interface NavItemProps {
     url: string;
@@ -37,12 +38,13 @@ const Menu: FC = () => {
   };
 
   const NavItems = () => {
-    const { pathname } = useRouter();
+    const { pathname, query } = useRouter();
+    const address = query.address == null ? DEMO_USER_ADDRESS : query.address;
     return (
       <>
-        <NavItem url="/overview" name="Overview" current={pathname == '/overview/[address]'} icon="Squares2X2" />
-        <NavItem url="/publication" name="Publication" current={pathname == '/publication/[address]'} icon="PencilSquare" />
-        <NavItem url="/revenue" name="Revenue" current={pathname == '/revenue/[address]'} icon="CurrencyDollar" />
+        <NavItem url={`/overview/${address}`} name="Overview" current={pathname == '/overview/[address]'} icon="Squares2X2" />
+        <NavItem url={`/publication/${address}`} name="Publication" current={pathname == '/publication/[address]'} icon="PencilSquare" />
+        <NavItem url={`/revenue/${address}`} name="Revenue" current={pathname == '/revenue/[address]'} icon="CurrencyDollar" />
       </>
     );
   };

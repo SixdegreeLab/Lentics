@@ -7,7 +7,9 @@ import {
   Profile,
   engagementCounterSql,
   engagementChangeSql,
-  engagementDailySql
+  engagementDailySql,
+  engagementMonthlySql,
+  profileTopFollowerSql,
 } from 'db';
 import { QueryTypes, Op } from 'sequelize';
 
@@ -23,7 +25,7 @@ const resolvers = {
       });
       return {
         profile,
-        isInWhiteList: walletWhitelist.includes(profile?.owner),
+        isInWhiteList: walletWhitelist.includes(address),
         whitelist: walletWhitelist
       };
     },
@@ -122,6 +124,42 @@ const resolvers = {
             type: QueryTypes.SELECT,
             raw: true,
             plain: false
+          }
+        );
+      }
+    },
+    MonthlyStatistics: async (_, { address, date }) => {
+      const profile = await Profile.findOne({
+        where: {
+          owner: address
+        }
+      });
+      if (profile) {
+        return sequelize.query(
+          engagementMonthlySql,
+          {
+            replacements: { profile_id: profile.profileId, date_of_month: date },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: true
+          }
+        );
+      }
+    },
+    ProfileTopFollower: async (_, { address, date }) => {
+      const profile = await Profile.findOne({
+        where: {
+          owner: address
+        }
+      });
+      if (profile) {
+        return sequelize.query(
+          profileTopFollowerSql,
+          {
+            replacements: { profile_id: profile.profileId, date_of_month: date },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: true
           }
         );
       }

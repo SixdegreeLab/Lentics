@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, Fragment } from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { Menu, Transition } from '@headlessui/react';
 import SignInDialog from '@components/Shared/Navbar/signin';
+import MobileMenuItems from '@components/Shared/Navbar/mobilemenuitem';
 
 import {
   useAccount,
@@ -19,20 +20,21 @@ function classNames(...classes: string[]) {
 }
 
 export type NavbarProps = {
-  initSession: any
+  addressName?: string
+  addressHandle?: string
 }
 
 
-const Navbar: FC<NavbarProps> = ({ initSession }) => {
+const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
   const router = useRouter();
   const defaultAvatar = '/icon2.png'
   const { address, connector, isConnected } = useAccount()
   const { data: session, status } = useSession()
-  const sessionInfo = initSession ? {
-    address: initSession.address,
-    name: initSession.user.name??'',
-    image: initSession.user.image??defaultAvatar,
-    handle: initSession.user.handle ? `@${initSession.user.handle}` : '' } : null 
+  const sessionInfo = session ? {
+    address: session.address,
+    name: session.user.name??'',
+    image: session.user.image??defaultAvatar,
+    handle: session.user.handle ? `@${session.user.handle}` : '' } : null 
   const [walletInfo, setWalletInfo] = useState(sessionInfo);
   const { disconnect } = useDisconnect()
   const [isOpenDialog, setIsOpenDialog] = useState(false)
@@ -76,21 +78,22 @@ const Navbar: FC<NavbarProps> = ({ initSession }) => {
   }, [])
 
   return (
-    <nav className='w-full flex items-center justify-between md:justify-end px-4 h-16 border-b-2 border-gray-300'>
+    <nav className={`w-full flex items-center justify-between md:justify-end px-4 h-16 ${isIndexPage ? 'border-b-0' : 'border-b-2'} border-gray-300`}>
       {
         walletInfo ? (
           <>
-            <div className="flex-grow space-x-2">
+            <div className="flex-grow space-x-2 hidden md:block">
               {
                 isIndexPage && (<h3 className="inline text-3xl font-bold">Analytics</h3>)
               }
               {
                 !isIndexPage && (<>
-                  <h3 className="inline text-3xl font-bold">{walletInfo.name}</h3>
-                  <span>{walletInfo.handle}</span>
+                  <h3 className="inline text-3xl font-bold">{addressName}</h3>
+                  <span>{addressHandle}</span>
                 </>)
               }
             </div>
+            <MobileMenuItems />
             <Menu as="div" className="relative inline-block text-left">
               <div>
                 <Menu.Button as={Fragment}>
@@ -138,11 +141,12 @@ const Navbar: FC<NavbarProps> = ({ initSession }) => {
           </>
         ) : (
           <>
-            <div className="flex-grow space-x-2">
+            <div className="hidden md:flex-grow space-x-2">
               {
                 isIndexPage && (<h3 className="inline text-3xl font-bold">Analytics</h3>)
               }
             </div>
+            <MobileMenuItems />
             <button className="mt-2 flex justify-center rounded-md border border-transparent bg-green-400 px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
               Connect Wallet
             </button>

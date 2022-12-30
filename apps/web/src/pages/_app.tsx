@@ -9,7 +9,7 @@ const Providers: any = lazy(() => import('@components/Common/Providers'));
 const App = ({ Component, pageProps }: AppProps) => {
   return (
     <Suspense fallback={<Loading />}>
-      <Providers>
+      <Providers {...pageProps}>
         <Component {...pageProps} />
       </Providers>
     </Suspense>
