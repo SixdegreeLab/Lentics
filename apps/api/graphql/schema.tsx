@@ -31,7 +31,7 @@ const typeDefs = `#graphql
     blockTime: String
     blockNumber: String
     follower: String
-    profileIds: [ID]
+    profileIds: [Int]
     timestamp: String
   }
 
@@ -119,6 +119,9 @@ const typeDefs = `#graphql
     commentedCountChange: Int
     mirroredCountChange: Int
     collectedCountChange: Int
+    publicationPostCountChange: Int
+    publicationCommentCountChange: Int
+    publicationMirrorCountChange: Int
   }
   
   type DailyStatistics {
@@ -166,23 +169,34 @@ const typeDefs = `#graphql
     followerProfileFollowersCount: Int
     topFollowerFollowingCount: Int
   }
+  
+  type ProfileCount {
+    owner: String
+    profileId: Int
+    postCount: Int
+    followCount: Int
+    commentCount: Int
+    mirrorCount: Int
+    collectCount: Int
+  } 
 
   type Query {
-    Profiles: [Profile]!
+    Profiles(addresses: [String]!): [Profile]!
+    ProfileCount(address: String!, startDate: String!, endDate: String!): ProfileCount
     Profile(address: String!): UserAndWhiteList
-    Posts: [Post]!
-    Post(profileId: ID!, pubId: ID!): Post
-    Follows: [Follow]!
-    Follow(profileId: ID!, follower: String!): Follow
-    Comments: [Comment]!
-    Comment(profileId: ID!, pubId: ID!): Comment
-    Mirrors: [Mirror]!
-    Mirror(profileId: ID!, pubId: ID!): Mirror
-    Collects: [Collect]!
-    Collect(profileId: ID!, pubId: ID!): Collect
+    Posts(profileId: Int!, startDate: String!, endDate: String!): [Post]
+    Post(profileId: Int!, pubId: Int!): Post
+    Follows(profileIds: [Int]!, startDate: String!, endDate: String!): [Follow]
+    Follow(profileId: Int!, follower: String!): Follow
+    Comments(profileId: Int!, startDate: String!, endDate: String!): [Comment]
+    Comment(profileId: Int!, pubId: Int!): Comment
+    Mirrors(profileId: Int!, startDate: String!, endDate: String!): [Mirror]
+    Mirror(profileId: Int!, pubId: Int!): Mirror
+    Collects(profileId: Int!, startDate: String!, endDate: String!): [Collect]
+    Collect(profileId: Int!, pubId: Int!): Collect
 
-    Summary30Days(address: String!): Summary30Days
-    DailyChange(address: String!): [DailyChange]
+    Summary30Days(address: String!, date: String!): Summary30Days
+    DailyChange(address: String!, date: String!): [DailyChange]
     DailyStatistics(address: String!): [DailyStatistics]
     MonthlyStatistics(address: String!, date: String!): MonthlyStatistics
     ProfileTopFollower(address: String!, date: String!): ProfileTopFollower

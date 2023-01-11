@@ -8,7 +8,7 @@ import { MarkerCircle, MarkerLine } from '@visx/marker';
 import { DateValue } from '@visx/mock-data/lib/generators/genDateValue';
 
 export type CurveData = {
-  date: string;
+  date: number; //timestamp
   value: number;
 }
 
@@ -26,8 +26,8 @@ const { scaleTime, scaleLinear } = Scale;
 export default function DailyChangesLinear({ chartKey, data, width, height, color='#333', centralLineColor='#333' }: CurveProps) {
 
   // data accessors
-  const getX = (d: DateValue) => d.date;
-  const getY = (d: DateValue) => d.value;
+  const getX = (d: CurveData) => d.date;
+  const getY = (d: CurveData) => d.value;
 
   // scales
   const xScale = scaleTime<number>({
@@ -57,7 +57,7 @@ export default function DailyChangesLinear({ chartKey, data, width, height, colo
           (
             <>
               <Group key={`line-${chartKey}`} top={0} left={13}>
-                <LinePath<DateValue>
+                <LinePath<CurveData>
                   curve={curveLinear}
                   data={data}
                   x={(d) => xScale(getX(d)) ?? 0}
@@ -71,8 +71,8 @@ export default function DailyChangesLinear({ chartKey, data, width, height, colo
                   markerEnd={`url(#marker-circle-${chartKey})`}
                 />
               </Group>
-              <Group key={`central-line-${chartKey}`} top={0} left={13}>
-                <LinePath<DateValue>
+              {/*<Group key={`central-line-${chartKey}`} top={0} left={13}>
+                <LinePath<CurveData>
                   curve={curveLinear}
                   data={data}
                   x={(d) => xScale(getX(d)) ?? 0}
@@ -82,7 +82,7 @@ export default function DailyChangesLinear({ chartKey, data, width, height, colo
                   strokeOpacity={1}
                   shapeRendering="geometricPrecision"
                 />
-              </Group>
+              </Group>*/}
             </>
           )
         )}

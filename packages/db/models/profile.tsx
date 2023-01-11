@@ -53,6 +53,6 @@ export const Profile = sequelize.define('Profile', {
     }
 }, {
     // Other model options go here
-    tableName: "lenshub_event_profilecreated",
+    tableName: "profilecreated_vw",
     timestamps: false
 });

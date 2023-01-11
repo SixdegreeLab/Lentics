@@ -54,7 +54,7 @@ http://localhost: 3001  #api
 6. To build all apps and packages, run the following commands:
 ```bash
 # lentics
-docker exec -it lentics_turbo_1 /bin/sh
+docker exec -it lentics-turbo-1 /bin/sh
 ```
 Then run:
 ```bash

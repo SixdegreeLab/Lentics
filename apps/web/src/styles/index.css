@@ -8,7 +8,7 @@ html {
 }
 
 body {
-  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
   @apply bg-gray-50;
   @apply dark:bg-black;
   height: 100%;
@@ -16,12 +16,12 @@ body {
   margin: auto;
 }
 
-body > div{
+body > #content-wrapper{
   width: 100%;
   height: 100%;
 }
 
-body > div > div{
+body > #content-wrapper > div{
   position: relative;
   width: 100%;
   height: 100%;
@@ -246,7 +246,8 @@ div[data-lexical-editor='true'] {
 .overview-summary-month-item div{
   @apply text-black;
   @apply font-bold;
-  @apply text-2xl;
+  @apply text-xl;
+  @apply text-gray-700;
 }
 
 .overview-summary-top{
@@ -268,7 +269,7 @@ div[data-lexical-editor='true'] {
 .overview-summary-top-item h5{
   @apply text-black;
   @apply font-bold;
-  @apply text-2xl;
+  @apply text-lg;
 }
 
 .overview-summary-top-item .details{
@@ -279,5 +280,21 @@ div[data-lexical-editor='true'] {
 @layer components {
   .min-h-56 {
     min-height: theme(height.56);
+  }
+  .min-h-80 {
+    min-height: theme(height.80);
+  }
+  .max-w-40 {
+    max-width: theme(width.40);
+  }
+  .min-w-32 {
+    min-width: theme(width.32);
+  }
+  .line-clamp-10 {
+    display: -webkit-box;
+    @apply overflow-hidden;
+    @apply overflow-ellipsis;
+    -webkit-line-clamp: 10;
+    -webkit-box-orient: vertical;
   }
 }

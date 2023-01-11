@@ -35,7 +35,7 @@ const TopFollower: React.FC<TopFollowerProps> = ({ profileTopFollower, follower,
     <div className="overview-summary-top-container">
       <div className="overview-summary-top-item h-full">
         <div className="flex title space-x-2 leading-9">
-          <h5>Top Followers</h5>
+          <h5>Top follower</h5>
         </div>
         {
           loading ? loadingIcon : (
@@ -107,9 +107,6 @@ const TopFollower: React.FC<TopFollowerProps> = ({ profileTopFollower, follower,
                           className="w-6 h-6"
                           alt="Website"
                         />
-                        <span>
-                          {getAttribute(follower?.attributes, 'website')?.replace('https://', '').replace('http://', '')}
-                        </span>
                       </a>
                     )
                   }
@@ -127,9 +124,6 @@ const TopFollower: React.FC<TopFollowerProps> = ({ profileTopFollower, follower,
                           className="w-6 h-6"
                           alt="Twitter Logo"
                         />
-                        <span>
-                          {getAttribute(follower?.attributes, 'twitter')?.replace('https://twitter.com/', '')}
-                        </span>
                       </a>
                     )
                   }

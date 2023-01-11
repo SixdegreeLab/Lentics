@@ -1,6 +1,6 @@
-import { Session } from '../api/auth/[...nextauth]';
+import { Session } from "next-auth"
 import { DEMO_USER_ADDRESS } from 'data';
-import client from '../apollo';
+import { apiQuery } from '../apollo';
 import { ProfileQuery } from '@lib/apiGraphql';
 
 
@@ -20,10 +20,10 @@ export type GraphqlProfileAndPermission = {
 
 export const checkPermission = async (
   address: string,
-  session: Session,
+  session: Session | null,
 ) => {
 
-  const { data: sessionProfile }: GraphqlProfileAndPermission = await client.query({
+  const { data: sessionProfile }: GraphqlProfileAndPermission = await apiQuery({
     query: ProfileQuery,
     variables: { "address": session?.address ?? '' }
   });

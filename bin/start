@@ -7,4 +7,5 @@ yarn install --frozen-lockfile #--offline
 
 bin/prepare
 # exec tail -f /dev/null
+# exec yarn run start
 exec yarn run dev

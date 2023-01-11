@@ -18,14 +18,14 @@ const Aside: FC = () => {
         <Menu />
       </div>
       <div className="sticky bottom-0 items-center border-t-2 border-gray-100 text-center mx-6 pt-4 pb-5">
-        <Link className="flex-1 text-center" href="/">
-          <img className="w-8 h-8 inline" style={{width: 'auto', height: '36px'}} src='/icon2.png' alt="icon" />
+        <Link className="flex-1 text-center" href="https://sixdegree.xyz" target="_blank">
+          <img className="w-8 h-8 inline" style={{width: 'auto', height: '36px'}} src='/sixdegree.png' alt="Sixdegree Lab" />
         </Link>
-        <Link className="flex-1 text-center mx-8" href="/">
-          <img className="w-8 h-8 inline" style={{width: 'auto', height: '36px'}} src='/icon3.png' alt="icon" />
+        <Link className="flex-1 text-center mx-8" href="https://twitter.com/SixdegreeLab" target="_blank">
+          <img className="w-8 h-8 inline" style={{width: 'auto', height: '36px'}} src='/twitter-circle.svg' alt="Twitter" />
         </Link>
-        <Link className="flex-1 text-center" href="/">
-          <img className="w-8 h-8 inline" style={{width: 'auto', height: '36px'}} src='/icon.svg' alt="icon" />
+        <Link className="flex-1 text-center" href="https://lenster.xyz/u/sixdegreelab" target="_blank">
+          <img className="w-8 h-8 inline" style={{width: 'auto', height: '36px'}} src='/icon.svg' alt="Lenster" />
         </Link>
       </div>
     </aside>

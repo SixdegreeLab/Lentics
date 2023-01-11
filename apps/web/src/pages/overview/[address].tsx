@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   getSession,
-  GetSessionParams
+  useSession
 } from 'next-auth/react';
 
 import Navbar from '@components/Shared/Navbar';
 import SummaryCard from '@components/Shared/SummaryCard';
-import * as moment from 'moment';
+import moment from 'moment';
 
-import client from '../../apollo';
+import { apiQuery } from '../../apollo';
 import { queryPublications, queryProfiles } from 'lens';
 import { MonthlyData } from '@components/Shared/Summary/SummaryMonthlyStats';
 import TopPostMonthly from '@components/Shared/Summary/TopPostMonthly';
+import MoreTopPostMonthly from '@components/Shared/Summary/MoreTopPostMonthly';
 import toast from 'react-hot-toast';
-import { Session } from '../api/auth/[...nextauth]';
 import { ApiProfileAndPermission, checkPermission } from '@lib/checkPermission';
 import {
   DailyChangeQuery,
@@ -22,15 +22,21 @@ import {
   ProfileTopFollowerQuery,
   SummaryQuery
 } from '@lib/apiGraphql';
+import {
+  SquaresPlusIcon
+} from '@heroicons/react/24/outline';
 
-export async function getServerSideProps(context: GetSessionParams | undefined) {
+// TODO: Hard code to query data.
+export const currentDate = '2022-12-25';
+
+export async function getServerSideProps(context: any) {
   // 测试address
   // 0x713A95B5923FAEe8Dc32593Ff9c0A30a3818D978
   // 0xed74c2cdFa90CF3C824cc427a103065651e46d89
   // 0xBAD8ca0d3Ef9e2b9D2A3149b707a879eBeA2a0BD
   // 0x84080288433CeC65AF0fC29978b95EC9ed477da0
-  const authSession: Session = await getSession(context);
-  const { address } = context.params;
+  const authSession = await getSession(context);
+  const { address } = context?.params ?? '';
   const hasPermission = await checkPermission(address, authSession);
   if (!hasPermission) {
     return {
@@ -41,7 +47,7 @@ export async function getServerSideProps(context: GetSessionParams | undefined) 
     }
   }
   
-  const { data: profileData } = await client.query({
+  const { data: profileData } = await apiQuery({
     query: ProfileQuery,
     variables: { "address": address }
   });
@@ -49,40 +55,49 @@ export async function getServerSideProps(context: GetSessionParams | undefined) 
     return {
       props: {
         initSession: authSession,
-        error: "The wallet address not found."
+        error: "The current address doesn't have Lens profile."
       }
     }
   }
   
-  const { data } = await client.query({
+  const { data } = await apiQuery({
     query: SummaryQuery,
-    variables: { "address": address }
+    variables: { "address": address, date: moment(currentDate).format('YYYY-MM-DD') }
   });
 
-  const { data: dailyChanges } = await client.query({
+  const { data: dailyChanges } = await apiQuery({
     query: DailyChangeQuery,
-    variables: { "address": address }
+    variables: { "address": address, date: moment(currentDate).format('YYYY-MM-DD') }
   });
   
-  const { data: currentMonthlyData } = await client.query({
+  const { data: currentMonthlyData } = await apiQuery({
     query: MonthlyStatisticsQuery,
-    variables: { "address": address, date: moment().format('YYYY-MM-DD') }
+    variables: { "address": address, date: moment(currentDate).format('YYYY-MM-DD') }
   });
 
-  const { data: lastMonthlyData } = await client.query({
+  const { data: lastMonthlyData } = await apiQuery({
     query: MonthlyStatisticsQuery,
-    variables: { "address": address, date: moment().subtract(1, 'months').format('YYYY-MM-DD') }
+    variables: { "address": address, date: moment(currentDate).subtract(1, 'months').format('YYYY-MM-DD') }
   });
 
-  const { data: currentProfileTopFollower } = await client.query({
+  // TODO: 性能问题，先屏蔽
+  let currentProfileTopFollower = { ProfileTopFollower: null };
+  let lastProfileTopFollower = { ProfileTopFollower: null };
+  /*const { data: currentProfileTopFollower } = await apiQuery({
     query: ProfileTopFollowerQuery,
-    variables: { "address": address, date: moment().format('YYYY-MM-DD') }
+    variables: { "address": address, date: moment(currentDate).format('YYYY-MM-DD') }
   });
 
-  const { data: lastProfileTopFollower } = await client.query({
+  const { data: lastProfileTopFollower } = await apiQuery({
     query: ProfileTopFollowerQuery,
-    variables: { "address": address, date: moment().subtract(1, 'months').format('YYYY-MM-DD') }
-  });
+    variables: { "address": address, date: moment(currentDate).subtract(1, 'months').format('YYYY-MM-DD') }
+  });*/
+
+  const curContentCount = data?.Summary30Days?.engagementScoreCurrent || 0 + 
+    data?.Summary30Days?.publicationCountCurrent || 0 + 
+    data?.Summary30Days?.followerCountCurrent || 0 + 
+    data?.Summary30Days?.collectedCountCurrent || 0 + 
+    data?.Summary30Days?.contentCountCurrent || 0;
 
   return {
     props: {
@@ -92,16 +107,16 @@ export async function getServerSideProps(context: GetSessionParams | undefined) 
       currentMonthlyData: currentMonthlyData.MonthlyStatistics,
       lastMonthlyData: lastMonthlyData.MonthlyStatistics,
       profileData: profileData.Profile,
-      currentProfileTopFollower: currentProfileTopFollower.ProfileTopFollower,
-      lastProfileTopFollower: lastProfileTopFollower.ProfileTopFollower,
-      error: null
+      currentProfileTopFollower: currentProfileTopFollower?.ProfileTopFollower,
+      lastProfileTopFollower: lastProfileTopFollower?.ProfileTopFollower,
+      error: curContentCount > 0 ? null : "The current profile doesn't have any activity in the period."
     },
   }
 }
 
 const fetchPublication = async (currentMonthlyData, lastMonthlyData) => {
   let postIds: number[] = [];
-  let profileId: number = currentMonthlyData?.profileId || 0;
+  let profileId: number = currentMonthlyData?.profileId ?? (lastMonthlyData?.profileId ?? 0);
   if (currentMonthlyData?.topEngagementPostId && !postIds.includes(currentMonthlyData.topEngagementPostId)) {
     postIds.push(currentMonthlyData.topEngagementPostId)
   }
@@ -235,6 +250,8 @@ export default function Web({
                 count={data?.Summary30Days?.engagementScoreCurrent || 0}
                 data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.engagementScoreChange }))}
                 changePercent={(data?.Summary30Days?.engagementScoreChangePercentage || 0)}
+                titleHint="Weighted score for various type of engagement in current time period, include post, comment, mirror, collect, etc."
+                url={profileData?.profile?.owner ? `/engagement/${profileData?.profile?.owner}` : undefined}
               />
               <SummaryCard
                 title="Publication"
@@ -243,6 +260,8 @@ export default function Web({
                 changePercent={(data?.Summary30Days?.publicationCountChangePercentage || 0)}
                 bgClass="bg-amber-50"
                 linearColor="#fbbf24"
+                titleHint="Count of new post published in current time period."
+                url={profileData?.profile?.owner ? `/publication/${profileData?.profile?.owner}` : undefined}
               />
               <SummaryCard
                 title="Followers"
@@ -251,6 +270,8 @@ export default function Web({
                 changePercent={(data?.Summary30Days?.followerCountChangePercentage || 0)}
                 bgClass="bg-green-50"
                 linearColor="#4ade80"
+                titleHint="New followers in current time period."
+                url={profileData?.profile?.owner ? `/follower/${profileData?.profile?.owner}` : undefined}
               />
               <SummaryCard
                 title="Collect"
@@ -259,20 +280,24 @@ export default function Web({
                 changePercent={(data?.Summary30Days?.collectedCountChangePercentage || 0)}
                 bgClass="bg-red-50"
                 linearColor="#fca5a5"
+                titleHint="Summary of collected times for all publications in current time perod."
+                url={profileData?.profile?.owner ? `/collect/${profileData?.profile?.owner}` : undefined}
               />
-              <SummaryCard
+              {/*<SummaryCard
                 title="Reveune"
-                count={data?.Summary30Days?.contentCountCurrent || 0}
+                count={`$${data?.Summary30Days?.contentCountCurrent || 0}`}
                 data={(dailyChanges||[]).map((d) => ({ date: Date.parse(d.blockDate), value: d.contentCountChange }))}
                 changePercent={(data?.Summary30Days?.contentCountChangePercentage || 0)}
                 bgClass="bg-violet-50"
                 linearColor="#c4b5fd"
-              />
+                titleHint="Revenue raised in current time period."
+                url={profileData?.profile?.owner ? `/reveune/${profileData?.profile?.owner}` : undefined}
+              />*/}
             </div>
           </div>
           <div className="mt-12">
             <div className="flex leading-9 space-x-3 mb-8 border-b-4 border-green-400">
-              <h4 className="inline text-2xl font-bold">{moment().format('MMM YYYY')}</h4>
+              <h4 className="inline text-2xl font-bold">{moment(currentDate).format('MMM YYYY')}</h4>
             </div>
             <TopPostMonthly
               monthlyData={currentMonthlyData}
@@ -284,7 +309,7 @@ export default function Web({
           </div>
           <div className="mt-12">
             <div className="flex leading-9 space-x-2 mb-8 border-b-4 border-green-400">
-              <h4 className="inline text-2xl font-bold">{moment().subtract(1, 'months').format('MMM YYYY')}</h4>
+              <h4 className="inline text-2xl font-bold">{moment(currentDate).subtract(1, 'months').format('MMM YYYY')}</h4>
             </div>
             <TopPostMonthly
               monthlyData={lastMonthlyData}
@@ -293,6 +318,14 @@ export default function Web({
               profileTopFollower={lastProfileTopFollower}
               followers={followers}
             />
+          </div>
+          {/*<MoreTopPostMonthly
+              fetchPublicationFn={fetchPublication}
+              fetchProfileFn={fetchProfile}
+            />*/}
+          <div className="mt-12 mb-12 cursor-pointer flex-auto space-x-2 text-center text-purple-600" title="Under Construction…">
+            <SquaresPlusIcon className="inline w-6 h-6"/>
+            <span>Load More</span>
           </div>
         </div>
       </div>

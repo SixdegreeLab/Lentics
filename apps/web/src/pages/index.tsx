@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import client from 'src/apollo';
+import { apiQuery } from 'src/apollo';
 import Navbar from '@components/Shared/Navbar';
 import { getSession, GetSessionParams } from "next-auth/react";
 import Link from 'next/link';
@@ -25,7 +25,7 @@ const HOME_QUERY = gql`
 
 export default function Web({ data }) {
   const defaultAvatar = '/icon2.png';
-  const { address } = useAccount();
+  const { address='' } = useAccount();
   const { data: session } = useSession();
   const sessionInfo = session ? {
     address: session.address,
@@ -71,7 +71,7 @@ export default function Web({ data }) {
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8 mt-5">
           <h2 className="mt-6 text-center text-4xl font-bold tracking-tight text-gray-900">
-            Analize Your Lens Data
+            Analyze Your Lens Data
           </h2>
           <p className="mt-2 text-center text-base text-gray-600">
             Analyze your Lens Protocal data to understand your impact, publication, revenue. Every word, photo, video, and follower can have an impact.
@@ -80,7 +80,7 @@ export default function Web({ data }) {
             {
               walletInfo && (
                 <Link className="w-full py-1" href={`/overview/${walletInfo.address}`}>
-                  <button className="mt-2 justify-center rounded-md border border-transparent bg-green-400 px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                  <button className="mt-2 justify-center rounded border border-transparent bg-[#5CC87EFF] px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                     View Self
                   </button>
                 </Link>
@@ -89,7 +89,7 @@ export default function Web({ data }) {
             {
               !walletInfo && (
                 <>
-                  <button className="mt-2 justify-center rounded-md border border-transparent bg-green-400 px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
+                  <button className="mt-2 justify-center rounded border border-transparent bg-[#5CC87EFF] px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
                     Connect Wallet
                   </button>
                   <SignInDialog
@@ -102,7 +102,7 @@ export default function Web({ data }) {
 
             <span className="mx-5">Or</span>
             <Link className="w-full py-1" href={`/overview/${DEMO_USER_ADDRESS}`}>
-              <button className="mt-2 justify-center rounded-md border border-transparent bg-slate-400 px-4 py-2 text-sm font-medium text-white hover:bg-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+              <button className="mt-2 justify-center rounded border border-transparent bg-[#9095A1FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#565D6DFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                 View Demo
               </button>
             </Link>
@@ -117,12 +117,12 @@ export default function Web({ data }) {
                       id="wallet-address"
                       name="wallet-address"
                       type="input"
-                      className="lg:w-80 rounded-md border border-gray-300 px-3 py-2 mt-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                      className="lg:w-80 rounded border border-gray-300 px-3 py-2 mt-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                       placeholder="Wallet address"
-                      onInput={(e)=>{setOtherAddress(e.target.value)}}
+                      onInput={(e: any)=>{setOtherAddress(e.target.value)}}
                     />
                   </div>
-                  <button className="mt-2 justify-center rounded-md border border-transparent bg-slate-400 px-4 py-2 text-sm font-medium text-white hover:bg-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleOtherView}>
+                  <button className="mt-2 justify-center rounded border border-transparent bg-[#9095A1FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#565D6DFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleOtherView}>
                     View Other
                   </button>
                 </div>
@@ -137,7 +137,7 @@ export default function Web({ data }) {
 
 export async function getServerSideProps(context: GetSessionParams | undefined) {
   const authSession = await getSession(context);
-  const { data } = await client.query({
+  const { data } = await apiQuery({
     query: HOME_QUERY,
     variables: { "address": authSession ? authSession.address : "" },
     // context: {

@@ -35,7 +35,7 @@ current_profile_new_followers as (
         p.handle as follower_profile_handle
     from profile_followers f
     inner join profile_created p on f.follower = p.owner    -- filter only followers who have profiles
-\tinner join date_filter df on true
+    inner join date_filter df on true
     where f.profile_id = :profile_id
         and to_timestamp(f.evt_block_time, 'YYYY/MM/DD HH24:MI:ss') >= df.start_date
         and to_timestamp(f.evt_block_time, 'YYYY/MM/DD HH24:MI:ss') < df.end_date

@@ -20,6 +20,7 @@ content_detail as (
       "profileId" as profile_id,
       1 as content_type_id
     from lenshub_event_postcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -27,6 +28,7 @@ content_detail as (
       "profileId" as profile_id,
       2 as content_type_id
     from lenshub_event_commentcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -34,6 +36,7 @@ content_detail as (
       "profileIdPointed" as profile_id,
       3 as content_type_id
     from lenshub_event_commentcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -41,6 +44,7 @@ content_detail as (
       "profileId" as profile_id,
       4 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -48,6 +52,7 @@ content_detail as (
       "profileIdPointed" as profile_id,
       5 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -56,6 +61,7 @@ content_detail as (
       6 as content_type_id
     from lenshub_event_collected c
     inner join lenshub_event_profilecreated p on c.collector = p."to"
+    where p."profileId" = :profile_id
 
     union all
 
@@ -63,6 +69,7 @@ content_detail as (
       "profileId" as profile_id,
       7 as content_type_id
     from lenshub_event_collected
+    where "profileId" = :profile_id
 
     union all
 
@@ -71,6 +78,7 @@ content_detail as (
       7 as content_type_id
     from lenshub_event_collected
     where "profileId" <> "rootProfileId"
+    AND "rootProfileId" = :profile_id
 
     union all
 
@@ -80,6 +88,7 @@ content_detail as (
     from lenshub_event_followed f
     inner join lenshub_event_profilecreated p on f.follower = p."to"
     cross join unnest("profileIds") as tbl(profile_id)
+    where p."profileId" = :profile_id
 
     union all
 
@@ -88,6 +97,7 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
+    where tbl.profile_id = :profile_id
 
     --TODO: Liked and Mentioned
 ),
@@ -107,7 +117,7 @@ engagement_summary_current as (
     from content_summary c
     inner join content_type ct on c.content_type_id = ct.content_type_id
     where profile_id = :profile_id
-        and c.block_date >= current_date - interval '30' day
+        and c.block_date >= date(:current_date) - interval '30' day
 ),
 
 engagement_summary_previous as (
@@ -116,15 +126,15 @@ engagement_summary_previous as (
     from content_summary c
     inner join content_type ct on c.content_type_id = ct.content_type_id
     where profile_id = :profile_id
-        and c.block_date >= current_date - interval '60' day
-        and c.block_date < current_date - interval '30' day
+        and c.block_date >= date(:current_date) - interval '60' day
+        and c.block_date < date(:current_date) - interval '30' day
 ),
 
 publication_summary_current as (
     select sum(content_count) as publication_count_current
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (1, 2, 4)    -- Post + Comment + Mirror
 ),
 
@@ -132,8 +142,8 @@ publication_summary_previous as (
     select sum(content_count) as publication_count_previous
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '60' day
-        and block_date < current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '60' day
+        and block_date < date(:current_date) - interval '30' day
         and content_type_id in (1, 2, 4)    -- Post + Comment + Mirror
 ),
 
@@ -141,7 +151,7 @@ follower_summary_current as (
     select sum(content_count) as follower_count_current
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (9)    -- Followed
 ),
 
@@ -149,8 +159,8 @@ follower_summary_previous as (
     select sum(content_count) as follower_count_previous
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '60' day
-        and block_date < current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '60' day
+        and block_date < date(:current_date) - interval '30' day
         and content_type_id in (9)    -- Followed
 ),
 
@@ -158,7 +168,7 @@ commented_summary_current as (
     select sum(content_count) as commented_count_current
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (3)    -- Commented
 ),
 
@@ -166,8 +176,8 @@ commented_summary_previous as (
     select sum(content_count) as commented_count_previous
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '60' day
-        and block_date < current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '60' day
+        and block_date < date(:current_date) - interval '30' day
         and content_type_id in (3)    -- Commented
 ),
 
@@ -175,7 +185,7 @@ mirrored_summary_current as (
     select sum(content_count) as mirrored_count_current
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (5)    -- Mirrored
 ),
 
@@ -183,8 +193,8 @@ mirrored_summary_previous as (
     select sum(content_count) as mirrored_count_previous
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '60' day
-        and block_date < current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '60' day
+        and block_date < date(:current_date) - interval '30' day
         and content_type_id in (5)    -- Mirrored
 ),
 
@@ -192,7 +202,7 @@ collected_summary_current as (
     select sum(content_count) as collected_count_current
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (7)    -- Collected
 ),
 
@@ -200,8 +210,8 @@ collected_summary_previous as (
     select sum(content_count) as collected_count_previous
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '60' day
-        and block_date < current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '60' day
+        and block_date < date(:current_date) - interval '30' day
         and content_type_id in (7)    -- Collected
 )
 

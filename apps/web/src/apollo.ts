@@ -41,4 +41,11 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+export const apiQuery = (options) => {
+  if (options?.variables?.address) {
+    options.variables.address = options.variables.address.toLowerCase();
+  }
+  return client.query(options)
+}
+
 export default client;

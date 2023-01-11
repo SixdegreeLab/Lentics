@@ -18,7 +18,7 @@ const Layout: FC<Props> = ({ children }) => {
         <meta name="theme-color" content={resolvedTheme === 'dark' ? '#1b1b1d' : '#ffffff'} />
       </Head>
       <Toaster position="top-center" toastOptions={getToastOptions(resolvedTheme)} />
-      <div className='w-full mx-auto h-screen flex overflow-hidden'>
+      <div id="content-wrapper" className='w-full mx-auto h-screen flex overflow-hidden'>
         <Aside />
         <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none xl:order-last ml-3">
           {children}

@@ -6,6 +6,7 @@ import TopPost from '@components/Shared/Summary/TopPost';
 import { IPFS_GATEWAY } from 'data';
 import TopFollower from '@components/Shared/Summary/TopFollower';
 import { ProfileTopFollowerData } from '../../../pages/overview/[address]';
+import { getHexLensPublicationId } from 'lens';
 
 export enum LensProfileMediaType {
   LensMediaSet = "MediaSet",
@@ -43,6 +44,7 @@ export type LensStats = {
 }
 export type LenMetaData = {
   description: string | null;
+  content: string | null;
   image: string | null;
 }
 export type LensPublication = {
@@ -64,9 +66,10 @@ export type TopPostMonthlyProps = {
   loading: boolean;
 }
 
-const getPostByProfileIdAndPubId = (profileId, pubId, posts={}): LensPublication => (
-  posts[`0x0${(profileId || 0).toString(16)}-0x0${(pubId || 0).toString(16)}`] || {}
-)
+const getPostByProfileIdAndPubId = (profileId, pubId, posts={}): LensPublication => {
+  const lensPublicationId = getHexLensPublicationId(profileId ?? 0, pubId ?? 0)
+  return posts[lensPublicationId] ?? {}
+}
 
 const getPostImage = (post: any={}): string => {
   let image = post?.metadata?.image || '';
@@ -122,15 +125,26 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
           title="Top engagement post"
           publication={topEngagementPost}
         >
-          {
-            loading ? loadingIcon : (topEngagementPost?.metadata?.description ?? noDataIcon)
-          }
+          <div className="line-clamp-10">
+            {
+              loading ? loadingIcon : (
+                topEngagementPost?.metadata?.description ? (
+                  <div className="line-clamp-10">
+                    {topEngagementPost?.metadata?.description}
+                  </div>
+                ) : noDataIcon)
+            }
+          </div>
         </TopPost>
-        <TopFollower
-          profileTopFollower={profileTopFollower}
-          follower={getFollowerByHandle(profileTopFollower?.followerProfileHandle, followers)}
-          loading={loading}
-        />
+        {
+          profileTopFollower && (
+            <TopFollower
+              profileTopFollower={profileTopFollower}
+              follower={getFollowerByHandle(profileTopFollower?.followerProfileHandle, followers)}
+              loading={loading}
+            />
+          )
+        }
         <TopPost
           title="Top commented"
           publication={topCommentedPost}
@@ -138,14 +152,20 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
           {
             loading ? loadingIcon : (topCommentedPost?.metadata?.description ? (
               <div className="flex space-x-4">
-                <div className="w-2/5">
-                  <img
-                    className="max-w-full"
-                    src={getPostImage(topCommentedPost)}
-                    alt="icon" />
-                </div>
-                <div className="w-3/5 overflow-hidden">
-                  {topCommentedPost?.metadata?.description}
+                {
+                  getPostImage(topCommentedPost) && (
+                    <div className="w-2/5">
+                      <img
+                        className="max-w-full"
+                        src={getPostImage(topCommentedPost)}
+                        alt="icon" />
+                    </div>
+                  )
+                }
+                <div className={getPostImage(topCommentedPost) ? `w-3/5` : 'w-full'}>
+                  <div className="line-clamp-10">
+                    {topCommentedPost?.metadata?.content}
+                  </div>
                 </div>
               </div>
             ) : noDataIcon)
@@ -156,16 +176,22 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
           publication={topMirroredPost}
         >
           {
-            loading ? loadingIcon : (topMirroredPost?.metadata?.description ? (
+            loading ? loadingIcon : (topMirroredPost?.metadata?.content ? (
               <div className="flex space-x-4">
-                <div className="w-2/5">
-                  <img
-                    className="max-w-full"
-                    src={getPostImage(topMirroredPost)}
-                    alt="icon" />
-                </div>
-                <div className="w-3/5 overflow-hidden">
-                  {topMirroredPost?.metadata?.description}
+                {
+                  getPostImage(topMirroredPost) && (
+                    <div className="w-2/5">
+                      <img
+                        className="max-w-full"
+                        src={getPostImage(topMirroredPost)}
+                        alt="icon" />
+                    </div>
+                  )
+                }
+                <div className={getPostImage(topMirroredPost) ? `w-3/5` : 'w-full'}>
+                  <div className="line-clamp-10">
+                    {topMirroredPost?.metadata?.content}
+                  </div>
                 </div>
               </div>
             ) : noDataIcon)
@@ -176,16 +202,22 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
           publication={topCollectedPost}
         >
           {
-            loading ? loadingIcon : (topCollectedPost?.metadata?.description ? (
+            loading ? loadingIcon : (topCollectedPost?.metadata?.content ? (
               <div className="flex space-x-4">
-                <div className="w-2/5">
-                  <img
-                    className="max-w-full"
-                    src={getPostImage(topCollectedPost)}
-                    alt="icon" />
-                </div>
-                <div className="w-3/5 overflow-hidden">
-                  {topCollectedPost?.metadata?.description}
+                {
+                  getPostImage(topCollectedPost) && (
+                    <div className="w-2/5">
+                      <img
+                        className="max-w-full"
+                        src={getPostImage(topCollectedPost)}
+                        alt="icon" />
+                    </div>
+                  )
+                }
+                <div className={getPostImage(topCollectedPost) ? `w-3/5` : 'w-full'}>
+                  <div className="line-clamp-10">
+                    {topCollectedPost?.metadata?.content}
+                  </div>
                 </div>
               </div>
             ) : noDataIcon)

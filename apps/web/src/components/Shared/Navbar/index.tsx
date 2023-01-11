@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { Menu, Transition } from '@headlessui/react';
 import SignInDialog from '@components/Shared/Navbar/signin';
 import MobileMenuItems from '@components/Shared/Navbar/mobilemenuitem';
+import { DEMO_USER_ADDRESS } from 'data/constants';
 
 import {
   useAccount,
@@ -28,7 +29,7 @@ export type NavbarProps = {
 const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
   const router = useRouter();
   const defaultAvatar = '/icon2.png'
-  const { address, connector, isConnected } = useAccount()
+  const { address='', connector, isConnected } = useAccount()
   const { data: session, status } = useSession()
   const sessionInfo = session ? {
     address: session.address,
@@ -56,6 +57,16 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
     e.preventDefault();
     disconnect();
     signOut();
+  }
+
+  const handleViewSelf = (e: any) => {
+    e.preventDefault();
+    location.href = `/overview/${walletInfo?.address}`;
+  }
+
+  const handleViewDemo = (e: any) => {
+    e.preventDefault();
+    location.href = `/overview/${DEMO_USER_ADDRESS}`;
   }
   
   const handleConnectWallet = (e: any) => {
@@ -120,6 +131,34 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
                 leaveTo="transform opacity-0 scale-95"
               >
                 <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div className="py-1 border-b-2 border-gray-300">
+                    <Menu.Item>
+                      {({ active }: any) => (
+                        <button
+                          className={classNames(
+                            active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                            'block w-full px-4 py-2 text-left text-sm'
+                          )}
+                          onClick={handleViewSelf}
+                        >
+                          View Self
+                        </button>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }: any) => (
+                        <button
+                          className={classNames(
+                            active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                            'block w-full px-4 py-2 text-left text-sm'
+                          )}
+                          onClick={handleViewDemo}
+                        >
+                          View Demo
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }: any) => (
@@ -147,7 +186,7 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
               }
             </div>
             <MobileMenuItems />
-            <button className="mt-2 flex justify-center rounded-md border border-transparent bg-green-400 px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
+            <button className="mt-2 flex justify-center rounded border border-transparent bg-[#5CC87EFF] px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
               Connect Wallet
             </button>
             <SignInDialog

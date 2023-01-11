@@ -1,7 +1,5 @@
 FROM node:16-alpine
 
-ENV NODE_ENV development
-
 #add turborepo
 #RUN yarn set version latest
 # RUN yarn global add turbo@1.5.5

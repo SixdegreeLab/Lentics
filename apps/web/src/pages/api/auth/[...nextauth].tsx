@@ -1,18 +1,20 @@
-import NextAuth from "next-auth"
+import NextAuth, { DefaultSession, Session } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { getCsrfToken } from "next-auth/react"
 import { SiweMessage } from "siwe"
 import { NEXTAUTH_URL, NEXTAUTH_SECRET, getIPFSLink, getAvatarFromLenster } from 'data/constants';
 import { queryDefaultProfile } from 'lens';
 
-export interface Session {
-  address: string,
-  user: {
-    id: string,
-    name: string,
-    image: string,
-    handle: string,
-    email: string // Field is fixed, use email to pass handle
+declare module "next-auth" {
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
+  interface Session {
+    address: string,
+    user: {
+      /** The user's postal address. */
+      handle: string
+    } & DefaultSession["user"]
   }
 }
 
@@ -39,14 +41,14 @@ export default async function auth(req: any, res: any) {
           const siwe = new SiweMessage(JSON.parse(credentials?.message || "{}"))
           const nextAuthUrl = new URL(NEXTAUTH_URL)
 
-          const result = await siwe.verify({
+          const result: any = await siwe.verify({
             signature: credentials?.signature || "",
             domain: nextAuthUrl.host,
             nonce: await getCsrfToken({ req }),
           })
 
           if (result.success) {
-            const profile = await queryDefaultProfile(siwe.address);
+            const profile: any = await queryDefaultProfile(siwe.address);
             const { name, handle, picture } = profile.data.defaultProfile || {
               name: `${siwe.address.substring(0, 4)}...${siwe.address.substring(siwe.address.length - 4)}`,
               handle: '',
@@ -93,7 +95,7 @@ export default async function auth(req: any, res: any) {
     callbacks: {
       async session({ session, token }: { session: Session; token: any}) {
         session.address = token.sub
-        session.user.handle = session.user.email
+        session.user.handle = session?.user?.email ?? ''
         return session
       },
     },

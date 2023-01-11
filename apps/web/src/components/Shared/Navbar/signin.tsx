@@ -14,7 +14,7 @@ import {
   useSignMessage
 } from 'wagmi';
 
-const SignInDialog =(props: { isOpen: Boolean, closeModal: any, setWalletInfo: any }) => {
+const SignInDialog =(props: { isOpen: boolean, closeModal: any, setWalletInfo: any }) => {
   const {
     isOpen,
     closeModal,
@@ -35,7 +35,7 @@ const SignInDialog =(props: { isOpen: Boolean, closeModal: any, setWalletInfo: a
         statement: "Sign in with Ethereum to the app.",
         uri: window.location.origin,
         version: "1",
-        chainId: chain?.id,
+        //chainId: chain?.id,
         nonce: await getCsrfToken(),
       })
       const signature = await signMessageAsync({
@@ -46,7 +46,7 @@ const SignInDialog =(props: { isOpen: Boolean, closeModal: any, setWalletInfo: a
         redirect: false,
         signature,
         callbackUrl,
-      })
+      }) ?? {}
       if (error) {
         setIsLogging(false);
         setWalletInfo(null)

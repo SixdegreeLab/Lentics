@@ -44,6 +44,7 @@ content_detail as (
       "pubId" as publication_id,
       1 as content_type_id
     from lenshub_event_postcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -52,6 +53,7 @@ content_detail as (
       "pubId" as publication_id,
       2 as content_type_id
     from lenshub_event_commentcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -60,6 +62,7 @@ content_detail as (
       "pubIdPointed" as publication_id,
       3 as content_type_id
     from lenshub_event_commentcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -68,6 +71,7 @@ content_detail as (
       "pubId" as publication_id,
       4 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -76,6 +80,7 @@ content_detail as (
       "pubIdPointed" as publication_id,
       5 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -85,6 +90,7 @@ content_detail as (
       6 as content_type_id
     from lenshub_event_collected c
     inner join lenshub_event_profilecreated p on c.collector = p."to"
+    where p."profileId" = :profile_id
 
     union all
 
@@ -93,6 +99,7 @@ content_detail as (
       "pubId" as publication_id,
       7 as content_type_id
     from lenshub_event_collected
+    where "profileId" = :profile_id
 
     union all
 
@@ -102,6 +109,7 @@ content_detail as (
       7 as content_type_id
     from lenshub_event_collected
     where "profileId" <> "rootProfileId"
+    and "rootProfileId" = :profile_id
 
     union all
 
@@ -112,6 +120,7 @@ content_detail as (
     from lenshub_event_followed f
     inner join lenshub_event_profilecreated p on f.follower = p."to"
     cross join unnest("profileIds") as tbl(profile_id)
+    where p."profileId" = :profile_id
 
     union all
 
@@ -121,6 +130,7 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
+    where tbl.profile_id = :profile_id
 
     --TODO: Liked and Mentioned
 ),
@@ -249,34 +259,34 @@ top_collected as (
 
 select :profile_id as "profileId",
     start_date as "startDate",
-    content_count as "contentCount",
-    engagement_score as "engagementScore",
-    publication_count as "publicationCount",
-    follower_count as "followerCount",
-    commented_count as "commentedCount",
-    mirrored_count as "mirroredCount",
-    collected_count as "collectedCount",
+    coalesce(content_count, 0) as "contentCount",
+    coalesce(engagement_score, 0) as "engagementScore",
+    coalesce(publication_count, 0) as "publicationCount",
+    coalesce(follower_count, 0) as "followerCount",
+    coalesce(commented_count, 0) as "commentedCount",
+    coalesce(mirrored_count, 0) as "mirroredCount",
+    coalesce(collected_count, 0) as "collectedCount",
     top_engagement_post_id as "topEngagementPostId",
-    top_post_engagement_score as "topPostEngagementScore",
+    coalesce(top_post_engagement_score, 0) as "topPostEngagementScore",
     top_engagement_post_content_uri as "topEngagementPostContentUri",
     top_commented_post_id as "topCommentedPostId",
-    top_post_commented_count as "topPostCommentedCount",
+    coalesce(top_post_commented_count, 0) as "topPostCommentedCount",
     top_commented_post_content_uri as "topCommentedPostContentUri",
     top_mirrored_post_id as "topMirroredPostId",
-    top_post_mirrored_count as "topPostMirroredCount",
+    coalesce(top_post_mirrored_count, 0) as "topPostMirroredCount",
     top_mirrored_post_content_uri as "topMirroredPostContentUri",
     top_collected_post_id as "topCollectedPostId",
-    top_post_collected_count as "topPostCollectedCount",
+    coalesce(top_post_collected_count, 0) as "topPostCollectedCount",
     top_collected_post_content_uri as "topCollectedPostContentUri"
-from engagement_summary
-inner join date_filter on true
-inner join publication_summary on true
-inner join follower_summary on true
-inner join commented_summary on true
-inner join mirrored_summary on true
-inner join collected_summary on true
-inner join top_engagement on true
-inner join top_commented on true
-inner join top_mirrored on true
-inner join top_collected on true;
+from date_filter
+left join engagement_summary on true
+left join publication_summary on true
+left join follower_summary on true
+left join commented_summary on true
+left join mirrored_summary on true
+left join collected_summary on true
+left join top_engagement on true
+left join top_commented on true
+left join top_mirrored on true
+left join top_collected on true;
 `;

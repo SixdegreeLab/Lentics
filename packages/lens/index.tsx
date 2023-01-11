@@ -521,7 +521,7 @@ export const ProfileFeedDocument = gql`
   ${MirrorFieldsFragmentDoc}
 `;
 
-const queryDoc = async (query: string, variables: any) => (
+const queryDoc = async (query: any, variables: any) => (
   await lensApolloClient.query({
     query,
     variables
@@ -536,7 +536,7 @@ export const queryDefaultProfile = async (address: string) => {
   })
 };
 
-export const queryProfiles = async (handles: string) => {
+export const queryProfiles = async (handles: string[]) => {
   return await queryDoc(ProfilesDocument, {
     request: {
       handles
@@ -552,10 +552,19 @@ export const queryPublication = async (profileId: number, pubId: number) => {
   })
 };
 
+export const getHexLensPublicationId = (profileId: number, pubId: number) => {
+  // 偶数前缀0x，奇数前缀0x0
+  let profileIdHex = (profileId.toString(16).length % 2) ? `0x0${profileId.toString(16)}` : `0x${profileId.toString(16)}`;
+  let pubIdHex = (pubId.toString(16).length % 2) ? `0x0${pubId.toString(16)}` : `0x${pubId.toString(16)}`;
+  return `${profileIdHex}-${pubIdHex}`
+}
+
 export const queryPublications = async (profileId: number, pubIds: number[]) => {
   return await queryDoc(ProfileFeedDocument, {
     request: {
-      publicationIds: pubIds.map((pubId) => (`0x0${profileId.toString(16)}-0x0${pubId.toString(16)}`))
+      publicationIds: pubIds.map(
+        (pubId) => (getHexLensPublicationId(profileId, pubId))
+      )
     },
   })
 };

@@ -20,6 +20,7 @@ content_detail as (
       "profileId" as profile_id,
       1 as content_type_id
     from lenshub_event_postcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -27,6 +28,7 @@ content_detail as (
       "profileId" as profile_id,
       2 as content_type_id
     from lenshub_event_commentcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -34,6 +36,7 @@ content_detail as (
       "profileIdPointed" as profile_id,
       3 as content_type_id
     from lenshub_event_commentcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -41,6 +44,7 @@ content_detail as (
       "profileId" as profile_id,
       4 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -48,6 +52,7 @@ content_detail as (
       "profileIdPointed" as profile_id,
       5 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -56,6 +61,7 @@ content_detail as (
       6 as content_type_id
     from lenshub_event_collected c
     inner join lenshub_event_profilecreated p on c.collector = p."to"
+    where p."profileId" = :profile_id
 
     union all
 
@@ -63,6 +69,7 @@ content_detail as (
       "profileId" as profile_id,
       7 as content_type_id
     from lenshub_event_collected
+    where "profileId" = :profile_id
 
     union all
 
@@ -71,6 +78,7 @@ content_detail as (
       7 as content_type_id
     from lenshub_event_collected
     where "profileId" <> "rootProfileId"
+    and "rootProfileId" = :profile_id
 
     union all
 
@@ -80,6 +88,7 @@ content_detail as (
     from lenshub_event_followed f
     inner join lenshub_event_profilecreated p on f.follower = p."to"
     cross join unnest("profileIds") as tbl(profile_id)
+    where p."profileId" = :profile_id
 
     union all
 
@@ -88,6 +97,7 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
+    where tbl.profile_id = :profile_id
 
     --TODO: Liked and Mentioned
 ),

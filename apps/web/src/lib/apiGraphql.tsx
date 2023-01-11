@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const SummaryQuery = gql`
-  query SummaryQuery($address: String!) {
-    Summary30Days(address: $address) {
+  query SummaryQuery($address: String!, $date: String!) {
+    Summary30Days(address: $address, date: $date) {
       profileId
       contentCountCurrent
       contentCountPrevious
@@ -36,13 +36,16 @@ export const SummaryQuery = gql`
   }
 `
 
-export const DailyChangeQuery = gql`query DailyChange($address: String!) {
-  DailyChange(address: $address) {
+export const DailyChangeQuery = gql`query DailyChange($address: String!, $date: String!) {
+  DailyChange(address: $address, date: $date) {
     profileId
     blockDate
     contentCountChange
     engagementScoreChange
     publicationCountChange
+    publicationPostCountChange
+    publicationCommentCountChange
+    publicationMirrorCountChange
     followerCountChange
     commentedCountChange
     mirroredCountChange

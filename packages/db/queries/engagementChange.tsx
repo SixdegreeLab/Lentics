@@ -16,7 +16,7 @@ export const engagementChangeSql = `with content_type(content_type_id, content_t
 ),
 
 date_series as (
-    select generate_series(current_date - interval '30' day, current_date, '1 day') as block_date
+    select generate_series(date(:current_date) - interval '30' day, date(:current_date), '1 day') as block_date
 ),
 
 content_detail as (
@@ -24,6 +24,7 @@ content_detail as (
       "profileId" as profile_id,
       1 as content_type_id
     from lenshub_event_postcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -31,6 +32,7 @@ content_detail as (
       "profileId" as profile_id,
       2 as content_type_id
     from lenshub_event_commentcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -38,6 +40,7 @@ content_detail as (
       "profileIdPointed" as profile_id,
       3 as content_type_id
     from lenshub_event_commentcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -45,6 +48,7 @@ content_detail as (
       "profileId" as profile_id,
       4 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileId" = :profile_id
 
     union all
 
@@ -52,6 +56,7 @@ content_detail as (
       "profileIdPointed" as profile_id,
       5 as content_type_id
     from lenshub_event_mirrorcreated
+    where "profileIdPointed" = :profile_id
 
     union all
 
@@ -60,6 +65,7 @@ content_detail as (
       6 as content_type_id
     from lenshub_event_collected c
     inner join lenshub_event_profilecreated p on c.collector = p."to"
+    where p."profileId" = :profile_id
 
     union all
 
@@ -67,6 +73,7 @@ content_detail as (
       "profileId" as profile_id,
       7 as content_type_id
     from lenshub_event_collected
+    where "profileId" = :profile_id
 
     union all
 
@@ -75,6 +82,7 @@ content_detail as (
       7 as content_type_id
     from lenshub_event_collected
     where "profileId" <> "rootProfileId"
+    and "rootProfileId" = :profile_id
 
     union all
 
@@ -84,6 +92,7 @@ content_detail as (
     from lenshub_event_followed f
     inner join lenshub_event_profilecreated p on f.follower = p."to"
     cross join unnest("profileIds") as tbl(profile_id)
+    where p."profileId" = :profile_id
 
     union all
 
@@ -92,6 +101,7 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
+    where tbl.profile_id = :profile_id
 
     --TODO: Liked and Mentioned
 ),
@@ -112,7 +122,7 @@ engagement_summary as (
     from content_summary c
     inner join content_type ct on c.content_type_id = ct.content_type_id
     where profile_id = :profile_id
-        and c.block_date >= current_date - interval '30' day
+        and c.block_date >= date(:current_date) - interval '30' day
     group by 1
 ),
 
@@ -133,7 +143,7 @@ publication_summary as (
         sum(content_count) as publication_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (1, 2, 4)    -- Post + Comment + Mirror
     group by 1
 ),
@@ -147,12 +157,63 @@ publication_change as (
     order by block_date
 ),
 
+publication_post_summary as (
+    select block_date,
+        sum(content_count) as publication_count
+    from content_summary
+    where profile_id = :profile_id
+        and block_date >= date(:current_date) - interval '30' day
+        and content_type_id in (1)    -- Post
+    group by 1
+),
+
+publication_post_change as (
+    select block_date,
+        publication_count
+    from publication_post_summary
+    order by block_date
+),
+
+publication_comment_summary as (
+    select block_date,
+        sum(content_count) as publication_count
+    from content_summary
+    where profile_id = :profile_id
+        and block_date >= date(:current_date) - interval '30' day
+        and content_type_id in (2)    -- Comment
+    group by 1
+),
+
+publication_comment_change as (
+    select block_date,
+        publication_count
+    from publication_comment_summary
+    order by block_date
+),
+
+publication_mirror_summary as (
+    select block_date,
+        sum(content_count) as publication_count
+    from content_summary
+    where profile_id = :profile_id
+        and block_date >= date(:current_date) - interval '30' day
+        and content_type_id in (4)    -- Mirror
+    group by 1
+),
+
+publication_mirror_change as (
+    select block_date,
+        publication_count
+    from publication_mirror_summary
+    order by block_date
+),
+
 follower_summary as (
     select block_date,
         sum(content_count) as follower_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (9)    -- Followed
     group by 1
 ),
@@ -171,7 +232,7 @@ commented_summary as (
         sum(content_count) as commented_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (3)    -- Commented
     group by 1
 ),
@@ -190,7 +251,7 @@ mirrored_summary as (
         sum(content_count) as mirrored_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (5)    -- Mirrored
     group by 1
 ),
@@ -209,7 +270,7 @@ collected_summary as (
         sum(content_count) as collected_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= current_date - interval '30' day
+        and block_date >= date(:current_date) - interval '30' day
         and content_type_id in (7)    -- Collected
     group by 1
 ),
@@ -225,16 +286,22 @@ collected_change as (
 
 select :profile_id as "profileId",
     to_char(d.block_date, 'YYYY-MM-DD') as "blockDate",
-    coalesce(e.content_count_change, 0) as "contentCountChange",
-    coalesce(e.engagement_score_change, 0) as "engagementScoreChange",
-    coalesce(p.publication_count_change, 0) as "publicationCountChange",
-    coalesce(f.follower_count_change, 0) as "followerCountChange",
-    coalesce(c.commented_count_change, 0) as "commentedCountChange",
-    coalesce(m.mirrored_count_change, 0) as "mirroredCountChange",
-    coalesce(cl.collected_count_change, 0) as "collectedCountChange"
+    coalesce(e.content_count, 0) as "contentCountChange",
+    coalesce(e.engagement_score, 0) as "engagementScoreChange",
+    coalesce(p.publication_count, 0) as "publicationCountChange",
+    coalesce(ppc.publication_count, 0) as "publicationPostCountChange",
+    coalesce(pcc.publication_count, 0) as "publicationCommentCountChange",
+    coalesce(pmc.publication_count, 0) as "publicationMirrorCountChange",
+    coalesce(f.follower_count, 0) as "followerCountChange",
+    coalesce(c.commented_count, 0) as "commentedCountChange",
+    coalesce(m.mirrored_count, 0) as "mirroredCountChange",
+    coalesce(cl.collected_count, 0) as "collectedCountChange"
 from date_series d
 left join engagement_change e on d.block_date = e.block_date
 left join publication_change p on d.block_date = p.block_date
+left join publication_post_change ppc on d.block_date = ppc.block_date
+left join publication_comment_change pcc on d.block_date = pcc.block_date
+left join publication_mirror_change pmc on d.block_date = pmc.block_date
 left join follower_change f on d.block_date = f.block_date
 left join commented_change c on d.block_date = c.block_date
 left join mirrored_change m on d.block_date = m.block_date

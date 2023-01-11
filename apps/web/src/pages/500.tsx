@@ -11,7 +11,7 @@ const Custom500: FC = () => {
           meantime, try refreshing.
         </div>
         <Link href="/">
-          <button className="flex mx-auto item-center" size="lg">
+          <button className="flex mx-auto item-center">
             <div>Go to home</div>
           </button>
         </Link>

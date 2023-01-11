@@ -3,7 +3,14 @@ import type { FC } from 'react';
 import { useEffect, useState, useRef, Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon} from '@heroicons/react/24/outline';
-import { PencilSquareIcon, CurrencyDollarIcon, Squares2X2Icon } from '@heroicons/react/24/solid';
+import {
+  PencilSquareIcon,
+  CurrencyDollarIcon,
+  Squares2X2Icon,
+  UsersIcon,
+  UserPlusIcon,
+  ViewColumnsIcon
+} from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import clsx from 'clsx';
 import {
@@ -11,11 +18,16 @@ import {
 } from 'wagmi';
 
 const MobileMenuItems: FC = () => {
-  const { address } = useAccount()
+  const { query } = useRouter();
+  const  DEMO_USER_ADDRESS = process.env.NEXT_PUBLIC_DEMO_USER_ADDRESS ?? "";
+  const address = query.address == null ? DEMO_USER_ADDRESS : query.address;
 
   const links = [
     { href: `/overview/${address}`, label: 'Overview', icon: 'Squares2X2' },
+    { href: `/engagement/${address}`, label: 'Engagement', icon: 'Users' },
     { href: `/publication/${address}`, label: 'Publication', icon: 'PencilSquare' },
+    { href: `/follower/${address}`, label: 'Follower', icon: 'UserPlus' },
+    { href: `/collect/${address}`, label: 'Collect', icon: 'ViewColumns' },
     { href: `/revenue/${address}`, label: 'Revenue', icon: 'CurrencyDollar' },
   ]
 
@@ -47,7 +59,7 @@ const MobileMenuItems: FC = () => {
         >
           <Menu.Items className="absolute left-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             {links.map((link) => (
-            <div className="py-1">
+            <div className="py-1" key={`div-${link.href}`}>
             <Menu.Item key={link.href} as={Fragment}>
               {({ active }) => (
                 <Link className="w-full inline-block py-1" href={link.href}>
@@ -64,6 +76,9 @@ const MobileMenuItems: FC = () => {
                     {link.icon === 'Squares2X2' && (<Squares2X2Icon className="inline w-6 h-6" />)}
                     {link.icon === 'PencilSquare' && (<PencilSquareIcon className="inline w-6 h-6" />)}
                     {link.icon === 'CurrencyDollar' && (<CurrencyDollarIcon className="inline w-6 h-6" />)}
+                    {link.icon === 'Users' && (<UsersIcon className="inline w-6 h-6" />)}
+                    {link.icon === 'UserPlus' && (<UserPlusIcon className="inline w-6 h-6" />)}
+                    {link.icon === 'ViewColumns' && (<ViewColumnsIcon className="inline w-6 h-6" />)}
                     <span>{link.label}</span>
                   </button>
                 </Link>
