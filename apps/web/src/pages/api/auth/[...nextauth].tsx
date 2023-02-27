@@ -2,7 +2,7 @@ import NextAuth, { DefaultSession, Session } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { getCsrfToken } from "next-auth/react"
 import { SiweMessage } from "siwe"
-import { NEXTAUTH_URL, NEXTAUTH_SECRET, getIPFSLink, getAvatarFromLenster } from 'data/constants';
+import { NEXTAUTH_URL, NEXTAUTH_SECRET, getIPFSLink } from 'data/constants';
 import { queryDefaultProfile } from 'lens';
 
 declare module "next-auth" {
@@ -56,11 +56,11 @@ export default async function auth(req: any, res: any) {
             };
 
             const image = picture
-              ? getAvatarFromLenster(getIPFSLink(
+              ? getIPFSLink(
                 picture?.original?.url ??
                 picture?.uri ??
                 `https://avatar.tobi.sh/${profile?.ownedBy}_${profile?.handle}.png`
-              ))
+              )
               : '';
             return {
               id: siwe.address,

@@ -23,12 +23,16 @@ CREATE INDEX IF NOT EXISTS lenshub_event_commentcreated_profileidpointed_pubidpo
 CREATE INDEX IF NOT EXISTS lenshub_event_commentcreated_evt_block_time ON lenshub_event_commentcreated ("evt_block_time");
 
 -- lenshub_event_followed
-CREATE INDEX IF NOT EXISTS lenshub_event_commentcreated_follower ON lenshub_event_followed ("follower");
+CREATE INDEX IF NOT EXISTS lenshub_event_followed_follower ON lenshub_event_followed ("follower");
+CREATE INDEX IF NOT EXISTS lenshub_event_followed_profileids on lenshub_event_followed using gin("profileIds");
+CREATE EXTENSION btree_gin;
+CREATE INDEX IF NOT EXISTS lenshub_event_followed_profileids_blocktime_moduldatas on lenshub_event_followed using gin("profileIds", "evt_block_time", cardinality("followModuleDatas"), length("followModuleDatas"[1]));
 
 
 -- lenshub_event_follownfttransferred
 CREATE INDEX IF NOT EXISTS lenshub_event_follownfttransferred_profileid ON lenshub_event_follownfttransferred ("profileId");
 CREATE INDEX IF NOT EXISTS lenshub_event_follownfttransferred_follownftid ON lenshub_event_follownfttransferred ("followNFTId");
+CREATE INDEX IF NOT EXISTS lenshub_event_follownfttransferred_profileid_follownftid ON lenshub_event_follownfttransferred ("profileId", "followNFTId");
 CREATE INDEX IF NOT EXISTS lenshub_event_follownfttransferred_from ON lenshub_event_follownfttransferred ("from");
 CREATE INDEX IF NOT EXISTS lenshub_event_follownfttransferred_to ON lenshub_event_follownfttransferred ("to");
 CREATE INDEX IF NOT EXISTS lenshub_event_follownfttransferred_evt_block_time ON lenshub_event_follownfttransferred ("evt_block_time");
@@ -41,6 +45,7 @@ CREATE INDEX IF NOT EXISTS lenshub_event_collected_profileid_pubid ON lenshub_ev
 CREATE INDEX IF NOT EXISTS lenshub_event_collected_rootprofileid ON lenshub_event_collected ("rootProfileId");
 CREATE INDEX IF NOT EXISTS lenshub_event_collected_rootprofileid_rootpubid ON lenshub_event_collected ("rootProfileId", "rootPubId");
 CREATE INDEX IF NOT EXISTS lenshub_event_collected_evt_block_time ON lenshub_event_collected ("evt_block_time");
+CREATE INDEX IF NOT EXISTS lenshub_event_collected_rootprofileid_blocktime_moduledata ON lenshub_event_collected ("rootProfileId", "evt_block_time", length("collectModuleData"));
 
 -- lenshub_event_collectnfttransferred
 CREATE INDEX IF NOT EXISTS lenshub_event_collectnfttransferred_profileid ON lenshub_event_collectnfttransferred ("profileId");

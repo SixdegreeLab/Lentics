@@ -1,8 +1,8 @@
 import { ParentSize } from '@visx/responsive';
 
-const ResponsiveChart =  ({ children }) => {
+const ResponsiveChart =  ({ min_height="min-h-80", children }) => {
   return (
-    <ParentSize className="min-h-80">{(parentSize) => (
+    <ParentSize className={min_height}>{(parentSize) => (
       children({...parentSize})
     )}</ParentSize>
   )

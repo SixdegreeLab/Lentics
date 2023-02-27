@@ -21,6 +21,7 @@ content_detail as (
       1 as content_type_id
     from lenshub_event_postcreated
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -29,6 +30,7 @@ content_detail as (
       2 as content_type_id
     from lenshub_event_commentcreated
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -37,6 +39,7 @@ content_detail as (
       3 as content_type_id
     from lenshub_event_commentcreated
     where "profileIdPointed" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -45,6 +48,7 @@ content_detail as (
       4 as content_type_id
     from lenshub_event_mirrorcreated
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -53,6 +57,7 @@ content_detail as (
       5 as content_type_id
     from lenshub_event_mirrorcreated
     where "profileIdPointed" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -60,8 +65,9 @@ content_detail as (
       p."profileId" as profile_id,
       6 as content_type_id
     from lenshub_event_collected c
-    inner join lenshub_event_profilecreated p on c.collector = p."to"
+    inner join lenshub_event_profilecreated p on c.collector = p."current_owner"
     where p."profileId" = :profile_id
+    and c.evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -70,6 +76,7 @@ content_detail as (
       7 as content_type_id
     from lenshub_event_collected
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -79,6 +86,7 @@ content_detail as (
     from lenshub_event_collected
     where "profileId" <> "rootProfileId"
     AND "rootProfileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -86,9 +94,10 @@ content_detail as (
       p."profileId" as profile_id,
       8 as content_type_id
     from lenshub_event_followed f
-    inner join lenshub_event_profilecreated p on f.follower = p."to"
+    inner join lenshub_event_profilecreated p on f.follower = p."current_owner"
     cross join unnest("profileIds") as tbl(profile_id)
     where p."profileId" = :profile_id
+    and f.evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -97,7 +106,8 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
-    where tbl.profile_id = :profile_id
+    where f."profileIds" && ARRAY[:profile_id::bigint]
+    and f.evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
 
     --TODO: Liked and Mentioned
 ),
@@ -213,6 +223,137 @@ collected_summary_previous as (
         and block_date >= date(:current_date) - interval '60' day
         and block_date < date(:current_date) - interval '30' day
         and content_type_id in (7)    -- Collected
+),
+
+paid_collect_detail as (
+    select evt_tx_hash,
+        evt_block_time,
+        date_trunc('day', to_timestamp(evt_block_time, 'YYYY/MM/DD HH24:MI:ss')) as block_date,
+        collector,
+        "profileId",
+        "pubId",
+        "profileId" || '-' || "pubId" as publication_id,
+        "rootProfileId",
+        "rootPubId",
+        "rootProfileId" || '-' || "rootPubId" as root_publication_id,
+        '0x' || substring("collectModuleData", 3 + 24, 40) as token_contract_address, -- Start from 3, with 24 of "0" + 40 of address chars
+        cast(hex2numeric('0x' || substring("collectModuleData", 3 + 64, 64)) as double precision) as paid_amount
+    from lenshub_event_collected
+    where "rootProfileId" = :profile_id
+        and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
+        and length("collectModuleData") > 2 + 64 -- paid collect contains two parts, '0x' + 64 + 64
+),
+
+paid_follow_detail as (
+    select evt_tx_hash,
+        evt_block_time,
+        date_trunc('day', to_timestamp(evt_block_time, 'YYYY/MM/DD HH24:MI:ss')) as block_date,
+        follower,
+        "profileIds"[1] as "profileId",
+        '0x' || substring("followModuleDatas"[1], 3 + 24, 40) as token_contract_address, -- Start from 3, with 24 of "0" + 40 of address chars
+        cast(hex2numeric('0x' || substring("followModuleDatas"[1], 3 + 64, 64)) as double precision) as paid_amount
+    from lenshub_event_followed
+    where "profileIds" && ARRAY[:profile_id::bigint]
+        and evt_block_time >= TO_CHAR(date(:current_date) - interval '60' day, 'YYYY/MM/DD HH24:MI:ss')
+        and cardinality("followModuleDatas") > 0
+        and length("followModuleDatas"[1]) > 2 + 64 -- paid follow contains two parts, 2 + 64 + 64
+),
+
+paid_transaction_detail_combined as (
+    select evt_tx_hash,
+        evt_block_time,
+        block_date,
+        collector as user_address,
+        "profileId",
+        token_contract_address,
+        paid_amount
+    from paid_collect_detail
+    
+    union all 
+    
+    select evt_tx_hash,
+        evt_block_time,
+        block_date,
+        follower as user_address,
+        "profileId",
+        token_contract_address,
+        paid_amount
+    from paid_follow_detail
+),
+
+token_revenue_summary_current as (
+    select token_contract_address,
+        sum(paid_amount) as paid_amount
+    from paid_transaction_detail_combined
+    where token_contract_address <> '0x0000000000000000000000000000000000000000' -- exclude zero address
+          and block_date >= date(:current_date) - interval '30' day
+    group by 1
+),
+
+latest_token_price_current as (
+    select contract_address, symbol, decimals, price, minute
+    from (
+        select row_number() over (partition by contract_address order by minute desc) as row_num, *
+        from price_usd pu
+        join coin c on pu.coin_id = c.id
+        where contract_address in ( 
+                select distinct token_contract_address from token_revenue_summary_current
+            )
+        order by minute desc
+    ) p
+    where row_num = 1
+    
+    union all
+    
+    select '0xd838290e877e0188a4a44700463419ed96c16107' as contract_address,
+        'NCT' as symbol,
+        18 as decimals,
+        1.69 as price, -- as of date 2023-01-17
+        date('2023-01-17') as minute
+),
+
+revenue_summary_current as (
+    select trunc(sum(paid_amount / pow(10, decimals) * price)::numeric, 2) as total_revenue_amount_current
+    from token_revenue_summary_current r
+    inner join latest_token_price_current p on r.token_contract_address = p.contract_address
+),
+
+token_revenue_summary_previous as (
+    select token_contract_address,
+        sum(paid_amount) as paid_amount
+    from paid_transaction_detail_combined
+    where token_contract_address <> '0x0000000000000000000000000000000000000000' -- exclude zero address
+          and block_date >= date(:current_date) - interval '60' day
+          and block_date < date(:current_date) - interval '30' day
+    group by 1
+),
+
+latest_token_price_previous as (
+    select contract_address, symbol, decimals, price, minute
+    from (
+        select row_number() over (partition by contract_address order by minute desc) as row_num, *
+        from price_usd pu
+        join coin c on pu.coin_id = c.id
+        where contract_address in ( 
+                select distinct token_contract_address from token_revenue_summary_previous
+            )
+        order by minute desc
+    ) p
+    where row_num = 1
+    
+    union all
+    
+    select '0xd838290e877e0188a4a44700463419ed96c16107' as contract_address,
+        'NCT' as symbol,
+        18 as decimals,
+        1.69 as price, -- as of date 2023-01-17
+        date('2023-01-17') as minute
+),
+
+revenue_summary_previous as (
+    select trunc(sum(paid_amount / pow(10, decimals) * price)::numeric, 2) as total_revenue_amount_previous
+    from token_revenue_summary_previous r
+    inner join latest_token_price_previous p on r.token_contract_address = p.contract_address
 )
 
 select :profile_id as "profileId",
@@ -249,7 +390,12 @@ select :profile_id as "profileId",
     coalesce(collected_count_current, 0) as "collectedCountCurrent",
     coalesce(collected_count_previous, 0) as "collectedCountPrevious",
     coalesce(collected_count_current - collected_count_previous, 0) as "collectedCountChange",
-    coalesce(cast(collected_count_current - collected_count_previous as double precision) / collected_count_previous * 100.0, 0) as "collectedCountChangePercentage"
+    coalesce(cast(collected_count_current - collected_count_previous as double precision) / collected_count_previous * 100.0, 0) as "collectedCountChangePercentage",
+    
+    coalesce(total_revenue_amount_current, 0) as "totalRevenueAmountCurrent",
+    coalesce(total_revenue_amount_previous, 0) as "totalRevenueAmountPrevious",
+    coalesce(total_revenue_amount_current - total_revenue_amount_previous, 0) as "totalRevenueAmountChange",
+    coalesce(trunc((cast(total_revenue_amount_current - total_revenue_amount_previous as double precision) / total_revenue_amount_previous * 100.0)::numeric, 2), 0) as "totalRevenueAmountChangePercentage"
 from engagement_summary_current
 inner join engagement_summary_previous on true
 inner join publication_summary_current on true
@@ -261,5 +407,7 @@ inner join commented_summary_previous on true
 inner join mirrored_summary_current on true
 inner join mirrored_summary_previous on true
 inner join collected_summary_current on true
-inner join collected_summary_previous on true;
+inner join collected_summary_previous on true
+inner join revenue_summary_current on true
+inner join revenue_summary_previous on true;
 `;

@@ -6,22 +6,11 @@ import Link from 'next/link';
 import { DEMO_USER_ADDRESS } from 'data/constants';
 import SignInDialog from '@components/Shared/Navbar/signin';
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useRef, Fragment } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import toast from 'react-hot-toast';
-
-const HOME_QUERY = gql`
-  query getProfile($address: String!) {
-    Profile(address: $address) {
-      profile {
-        profileId,
-        owner
-      }
-      isInWhiteList
-      whitelist
-    }
-  }
-`
+import IconSpin from '@components/Shared/Spin';
+import { ProfileQuery } from '@lib/apiGraphql';
 
 export default function Web({ data }) {
   const defaultAvatar = '/icon2.png';
@@ -36,6 +25,7 @@ export default function Web({ data }) {
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const isInWhiteList = data.isInWhiteList;
   const [otherAddress, setOtherAddress] = useState('');
+  const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -59,6 +49,7 @@ export default function Web({ data }) {
 
   const handleOtherView = () => {
     if (otherAddress != '') {
+      setClicked(true);
       location.href = `/overview/${otherAddress}`;
     } else {
       toast.error("Please enter the wallet address...");
@@ -69,7 +60,7 @@ export default function Web({ data }) {
     <div className="page_content">
       <Navbar />
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8 mt-5">
+        <div className="w-full max-w-lg space-y-8 mt-5">
           <h2 className="mt-6 text-center text-4xl font-bold tracking-tight text-gray-900">
             Analyze Your Lens Data
           </h2>
@@ -117,13 +108,13 @@ export default function Web({ data }) {
                       id="wallet-address"
                       name="wallet-address"
                       type="input"
-                      className="lg:w-80 rounded border border-gray-300 px-3 py-2 mt-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      placeholder="Wallet address"
+                      className="lg:w-96 rounded border border-gray-300 px-3 py-2 mt-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                      placeholder="Wallet address or handle"
                       onInput={(e: any)=>{setOtherAddress(e.target.value)}}
                     />
                   </div>
-                  <button className="mt-2 justify-center rounded border border-transparent bg-[#9095A1FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#565D6DFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleOtherView}>
-                    View Other
+                  <button className="flex w-28 mt-2 justify-center rounded border border-transparent bg-[#9095A1FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#565D6DFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleOtherView}>
+                    { clicked ? <IconSpin className="w-4 h-4" /> : `View Other` }
                   </button>
                 </div>
               </div>
@@ -138,19 +129,14 @@ export default function Web({ data }) {
 export async function getServerSideProps(context: GetSessionParams | undefined) {
   const authSession = await getSession(context);
   const { data } = await apiQuery({
-    query: HOME_QUERY,
+    query: ProfileQuery,
     variables: { "address": authSession ? authSession.address : "" },
-    // context: {
-    //   headers: {
-    //     Authorization: authSession ? authSession.address : ""
-    //   }
-    // },
   });
 
   return {
     props: {
+      pageTitle: 'Lentics',
       data: data.Profile,
-      initSession: authSession,
     },
   }
 }

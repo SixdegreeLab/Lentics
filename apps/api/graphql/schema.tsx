@@ -10,6 +10,7 @@ const typeDefs = `#graphql
     blockNumber: String
     txHash: String
     timestamp: String
+    default: Boolean
   }
 
   type Post {
@@ -25,13 +26,15 @@ const typeDefs = `#graphql
     timestamp: String
   }
 
-  type Follow {
+  type Follower {
     txHash: String
     txIndex: String
     blockTime: String
     blockNumber: String
     follower: String
-    profileIds: [Int]
+    profileId: Int
+    followerHandle: String
+    followerProfileId: Int
     timestamp: String
   }
 
@@ -107,6 +110,10 @@ const typeDefs = `#graphql
     collectedCountPrevious: Int
     collectedCountChange: Int
     collectedCountChangePercentage: Float
+    totalRevenueAmountCurrent: Float
+    totalRevenueAmountPrevious: Float
+    totalRevenueAmountChange: Float
+    totalRevenueAmountChangePercentage: Float
   }
   
   type DailyChange {
@@ -118,10 +125,15 @@ const typeDefs = `#graphql
     followerCountChange: Int
     commentedCountChange: Int
     mirroredCountChange: Int
+    collectCountChange: Int
     collectedCountChange: Int
     publicationPostCountChange: Int
     publicationCommentCountChange: Int
     publicationMirrorCountChange: Int
+    revenueCountChange: Float
+    revenueCollectPostCountChange: Float
+    revenueCollectMirroredCountChange: Float
+    revenueFollowProfileCountChange: Float
   }
   
   type DailyStatistics {
@@ -145,10 +157,15 @@ const typeDefs = `#graphql
     contentCount: Int
     engagementScore: Int
     publicationCount: Int
+    postCount: Int
     followerCount: Int
+    commentCount: Int
     commentedCount: Int
+    mirrorCount: Int
     mirroredCount: Int
+    collectCount: Int
     collectedCount: Int
+    revenueCount: Float
     topEngagementPostId: Int
     topPostEngagementScore: Int
     topEngagementPostContentUri: String
@@ -166,8 +183,6 @@ const typeDefs = `#graphql
   type ProfileTopFollower {
     followerProfileId: Int
     followerProfileHandle: String
-    followerProfileFollowersCount: Int
-    topFollowerFollowingCount: Int
   }
   
   type ProfileCount {
@@ -178,28 +193,67 @@ const typeDefs = `#graphql
     commentCount: Int
     mirrorCount: Int
     collectCount: Int
-  } 
+  }
+  
+  type RevenueSupporter {
+    userAddress: String
+    handle: String
+    profileId: Int
+    link: String
+    paidAmountUsd: Float
+  }
+  
+  type RevenueAmountByToken {
+    symbol: String
+    paidAmountUsd: Float
+  }
+  
+  type RevenueSummary {
+    supporterCount: Int
+    paidAmountUsd: Float
+    revenueAmountByToken: [RevenueAmountByToken]
+  }
+  
+  type RevenuePublication {
+    publicationId: String
+    profileId: Int
+    pubId: Int
+    paidAmountUsd: Float
+    supporterCount: Int
+  }
+  
+  type TopPost {
+    topPostId: Int
+    topPostContentUri: String
+  }
+  
+  input Pagination {
+    offset: Int!
+    limit: Int!
+  }
 
   type Query {
-    Profiles(addresses: [String]!): [Profile]!
-    ProfileCount(address: String!, startDate: String!, endDate: String!): ProfileCount
-    Profile(address: String!): UserAndWhiteList
-    Posts(profileId: Int!, startDate: String!, endDate: String!): [Post]
-    Post(profileId: Int!, pubId: Int!): Post
-    Follows(profileIds: [Int]!, startDate: String!, endDate: String!): [Follow]
-    Follow(profileId: Int!, follower: String!): Follow
-    Comments(profileId: Int!, startDate: String!, endDate: String!): [Comment]
-    Comment(profileId: Int!, pubId: Int!): Comment
-    Mirrors(profileId: Int!, startDate: String!, endDate: String!): [Mirror]
-    Mirror(profileId: Int!, pubId: Int!): Mirror
-    Collects(profileId: Int!, startDate: String!, endDate: String!): [Collect]
-    Collect(profileId: Int!, pubId: Int!): Collect
+    Profiles(addresses: [String]!, paginate: Pagination): [Profile]!
+    ProfileCount(addressOrHandle: String!, startDate: String!, endDate: String!): ProfileCount
+    Profile(addressOrHandle: String!): UserAndWhiteList
+    Posts(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Post]
+    Followers(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Follower]
+    Commented(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Comment]
+    Comments(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Comment]
+    Mirrored(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Mirror]
+    Mirrors(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Mirror]
+    Collected(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Collect]
+    Collects(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [Collect]
 
-    Summary30Days(address: String!, date: String!): Summary30Days
-    DailyChange(address: String!, date: String!): [DailyChange]
-    DailyStatistics(address: String!): [DailyStatistics]
-    MonthlyStatistics(address: String!, date: String!): MonthlyStatistics
-    ProfileTopFollower(address: String!, date: String!): ProfileTopFollower
+    Summary30Days(addressOrHandle: String, profileId: Int, date: String!): Summary30Days
+    DailyChange(addressOrHandle: String, profileId: Int, startDate: String!, endDate: String!): [DailyChange]
+    MonthlyStatistics(addressOrHandle: String, profileId: Int, startDate: String!, endDate: String!): MonthlyStatistics
+    ProfileTopFollower(addressOrHandle: String, profileId: Int, startDate: String!, endDate: String!): ProfileTopFollower
+    RevenueSupporters(addressOrHandle: String, profileId: Int, startDate: String!, endDate: String!, paginate: Pagination): [RevenueSupporter]
+    RevenueSummary(addressOrHandle: String, profileId: Int, startDate: String!, endDate: String!): RevenueSummary
+    RevenuePublications(addressOrHandle: String, profileId: Int, startDate: String!, endDate: String!, paginate: Pagination): [RevenuePublication]
+    TopEngagementPosts(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [TopPost]
+    TopCollectedPosts(profileId: Int!, startDate: String!, endDate: String!, paginate: Pagination): [TopPost]
   }
 `
 

@@ -39,6 +39,17 @@ export const addressLink = (address: string) => {
 const client = new ApolloClient({
   link: from([retryLink, httpLink]),
   cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'cache-and-network',
+      errorPolicy: 'ignore',
+    },
+    query: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all',
+    },
+
+  }
 });
 
 export const apiQuery = (options) => {

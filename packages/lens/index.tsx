@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import { MAINNET_API_URL } from 'data/constants';
+import { BigNumber } from 'ethers';
 
 // TODO: Use mainnet for now, beacause can not query profile on Mumbai Testnet.
 const lensApolloClient= new ApolloClient({
@@ -544,27 +545,25 @@ export const queryProfiles = async (handles: string[]) => {
   })
 };
 
+export const getHexLensPublicationIdWithBigNumber = (profileId: number, pubId: number) => (
+  `${BigNumber.from(profileId).toHexString()}-${BigNumber.from(pubId).toHexString()}`
+)
+
 export const queryPublication = async (profileId: number, pubId: number) => {
   return await queryDoc(PublicationDocument, {
     request: {
-      publicationId: `0x0${profileId.toString(16)}-0x0${pubId.toString(16)}`
+      publicationId: getHexLensPublicationIdWithBigNumber(profileId, pubId)
     },
   })
 };
-
-export const getHexLensPublicationId = (profileId: number, pubId: number) => {
-  // 偶数前缀0x，奇数前缀0x0
-  let profileIdHex = (profileId.toString(16).length % 2) ? `0x0${profileId.toString(16)}` : `0x${profileId.toString(16)}`;
-  let pubIdHex = (pubId.toString(16).length % 2) ? `0x0${pubId.toString(16)}` : `0x${pubId.toString(16)}`;
-  return `${profileIdHex}-${pubIdHex}`
-}
 
 export const queryPublications = async (profileId: number, pubIds: number[]) => {
   return await queryDoc(ProfileFeedDocument, {
     request: {
       publicationIds: pubIds.map(
-        (pubId) => (getHexLensPublicationId(profileId, pubId))
-      )
+        (pubId) => (getHexLensPublicationIdWithBigNumber(profileId, pubId))
+      ),
+      limit: pubIds.length // To avoid use the default limit of lens api 
     },
   })
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import IconCloud from '@components/Shared/Icon/Cloud';
 import IconSpin from '@components/Shared/Spin';
 import SummaryMonthlyStats, { MonthlyData } from '@components/Shared/Summary/SummaryMonthlyStats';
@@ -6,7 +6,8 @@ import TopPost from '@components/Shared/Summary/TopPost';
 import { IPFS_GATEWAY } from 'data';
 import TopFollower from '@components/Shared/Summary/TopFollower';
 import { ProfileTopFollowerData } from '../../../pages/overview/[address]';
-import { getHexLensPublicationId } from 'lens';
+import { getHexLensPublicationIdWithBigNumber } from 'lens';
+import Image from 'next/image'
 
 export enum LensProfileMediaType {
   LensMediaSet = "MediaSet",
@@ -26,6 +27,10 @@ export type LensAttribute = {
   key: string;
   value: string;
 }
+export type LensProfileStats = {
+  totalFollowers: number;
+  totalFollowing: number;
+}
 export type LensFollower = {
   id: string;
   name: string | null;
@@ -34,6 +39,7 @@ export type LensFollower = {
   bio: string | null;
   picture: LensProfileMedia
   attributes: LensAttribute[];
+  stats: LensProfileStats;
 }
 
 export type LensStats = {
@@ -48,6 +54,7 @@ export type LenMetaData = {
   image: string | null;
 }
 export type LensPublication = {
+  id: string;
   stats: LensStats;
   metadata: LenMetaData;
   
@@ -67,12 +74,24 @@ export type TopPostMonthlyProps = {
 }
 
 const getPostByProfileIdAndPubId = (profileId, pubId, posts={}): LensPublication => {
-  const lensPublicationId = getHexLensPublicationId(profileId ?? 0, pubId ?? 0)
+  const lensPublicationId = getHexLensPublicationIdWithBigNumber(profileId ?? 0, pubId ?? 0)
   return posts[lensPublicationId] ?? {}
 }
 
 const getPostImage = (post: any={}): string => {
-  let image = post?.metadata?.image || '';
+  let image = ''
+  let media: any = post?.metadata?.media[0];
+  if (media) {
+    let mimeType: any = media?.original?.mimeType?.split('/') || [];
+    if (mimeType[0]?.toLowerCase() === 'image' && media?.original?.url) {
+      image = media.original.url
+    }
+  }
+  
+  if (!image) {
+    image = post?.metadata?.image ?? ''
+  }
+
   if (image && image.includes('ipfs://')) {
     image = `${IPFS_GATEWAY}${image.split('/').pop()}`;
   }
@@ -117,6 +136,11 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
       <IconSpin className="w-8 h-8" />
     </div>
   )
+  
+  const [errorImages, setErrorImages] = useState<string[]>([]);
+  const handleImageError = (imgKey) => (() => {
+    setErrorImages([...errorImages, imgKey])
+  })
   return (
     <>
       <SummaryMonthlyStats monthlyData={monthlyData} />
@@ -128,9 +152,9 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
           <div className="line-clamp-10">
             {
               loading ? loadingIcon : (
-                topEngagementPost?.metadata?.description ? (
-                  <div className="line-clamp-10">
-                    {topEngagementPost?.metadata?.description}
+                topEngagementPost?.metadata?.content ? (
+                  <div className="whitespace-pre-line">
+                    {topEngagementPost?.metadata?.content}
                   </div>
                 ) : noDataIcon)
             }
@@ -150,20 +174,24 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
           publication={topCommentedPost}
         >
           {
-            loading ? loadingIcon : (topCommentedPost?.metadata?.description ? (
-              <div className="flex space-x-4">
+            loading ? loadingIcon : (topCommentedPost?.metadata?.content ? (
+              <div className="flex space-x-4 min-h-48">
                 {
-                  getPostImage(topCommentedPost) && (
-                    <div className="w-2/5">
-                      <img
-                        className="max-w-full"
-                        src={getPostImage(topCommentedPost)}
-                        alt="icon" />
+                  getPostImage(topCommentedPost) && !errorImages.includes(topCommentedPost.id) && (
+                    <div className="w-2/5 relative">
+                      <Image className="max-w-full object-scale-down object-top"
+                             src={getPostImage(topCommentedPost)}
+                             placeholder="blur"
+                             blurDataURL="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkkI39DwACGgF7lpEkjAAAAABJRU5ErkJggg=="
+                             fill
+                             onError={handleImageError(topCommentedPost.id)}
+                             alt={getPostImage(topCommentedPost)}
+                             priority/>
                     </div>
                   )
                 }
-                <div className={getPostImage(topCommentedPost) ? `w-3/5` : 'w-full'}>
-                  <div className="line-clamp-10">
+                <div className={getPostImage(topCommentedPost) && !errorImages.includes(topCommentedPost.id) ? `w-3/5` : 'w-full'}>
+                  <div className="line-clamp-10 whitespace-pre-line">
                     {topCommentedPost?.metadata?.content}
                   </div>
                 </div>
@@ -177,19 +205,23 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
         >
           {
             loading ? loadingIcon : (topMirroredPost?.metadata?.content ? (
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 min-h-48">
                 {
-                  getPostImage(topMirroredPost) && (
-                    <div className="w-2/5">
-                      <img
-                        className="max-w-full"
-                        src={getPostImage(topMirroredPost)}
-                        alt="icon" />
+                  getPostImage(topMirroredPost) && !errorImages.includes(topMirroredPost.id) && (
+                    <div className="w-2/5 relative">
+                      <Image className="max-w-full object-scale-down object-top"
+                             src={getPostImage(topMirroredPost)}
+                             placeholder="blur"
+                             blurDataURL="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkkI39DwACGgF7lpEkjAAAAABJRU5ErkJggg=="
+                             fill
+                             onError={handleImageError(topMirroredPost.id)}
+                             alt={getPostImage(topMirroredPost)}
+                             priority/>
                     </div>
                   )
                 }
-                <div className={getPostImage(topMirroredPost) ? `w-3/5` : 'w-full'}>
-                  <div className="line-clamp-10">
+                <div className={getPostImage(topMirroredPost) && !errorImages.includes(topMirroredPost.id) ? `w-3/5` : 'w-full'}>
+                  <div className="line-clamp-10 whitespace-pre-line">
                     {topMirroredPost?.metadata?.content}
                   </div>
                 </div>
@@ -203,19 +235,23 @@ const TopPostMonthly: React.FC<TopPostMonthlyProps> = ({
         >
           {
             loading ? loadingIcon : (topCollectedPost?.metadata?.content ? (
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 min-h-48">
                 {
-                  getPostImage(topCollectedPost) && (
-                    <div className="w-2/5">
-                      <img
-                        className="max-w-full"
-                        src={getPostImage(topCollectedPost)}
-                        alt="icon" />
+                  getPostImage(topCollectedPost) && !errorImages.includes(topCollectedPost.id) && (
+                    <div className="w-2/5 relative">
+                      <Image className="max-w-full object-scale-down object-top"
+                             src={getPostImage(topCollectedPost)}
+                             placeholder="blur"
+                             blurDataURL="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkkI39DwACGgF7lpEkjAAAAABJRU5ErkJggg=="
+                             fill
+                             onError={handleImageError(topCollectedPost.id)}
+                             alt={getPostImage(topCollectedPost)}
+                             priority/>
                     </div>
                   )
                 }
-                <div className={getPostImage(topCollectedPost) ? `w-3/5` : 'w-full'}>
-                  <div className="line-clamp-10">
+                <div className={getPostImage(topCollectedPost) && !errorImages.includes(topCollectedPost.id) ? `w-3/5` : 'w-full'}>
+                  <div className="line-clamp-10 whitespace-pre-line">
                     {topCollectedPost?.metadata?.content}
                   </div>
                 </div>

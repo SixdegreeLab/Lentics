@@ -1,71 +1,76 @@
+/* 
+  Follower count is used to get top follower, following is no longer used.
+  Fetch them from lens api on the client.
+*/
 export const profileTopFollowerSql = `with date_filter as (
-    with start_date_info as (
-        select date_trunc('month', date(:date_of_month)) as start_date
-    )
-    
-    select start_date,
-        start_date + interval '1' month as end_date
-    from start_date_info
+    select date(:startDate) as start_date, date(:endDate) as end_date
 ),
 
--- profiles with real owner
-profile_created as (
-    select distinct p.handle,
-        p."profileId" as profile_id,
-        p.evt_tx_hash,
-        p.evt_block_time,
-        first_value(t."to") over (partition by t."tokenId" order by t.evt_block_time desc) as owner -- last transfer to is owner
-    from lenshub_event_profilecreated p
-    inner join lenshub_event_transfer t on p."profileId" = t."tokenId"
-),
-
--- profiles with real followers
 profile_followers as (
-    select distinct "profileId" as profile_id,
-        "followNFTId" as follow_nft_id,
-        first_value(evt_block_time) over (partition by "profileId", "followNFTId" order by evt_block_time desc) as evt_block_time,
-        first_value(evt_tx_hash)  over (partition by "profileId", "followNFTId" order by evt_block_time desc) as evt_tx_hash,
-        first_value("to")  over (partition by "profileId", "followNFTId" order by evt_block_time desc) as follower
-    from lenshub_event_follownfttransferred
+  select f."profileId" as profile_id,
+          f."followNFTId" as follow_nft_id,
+          f.evt_block_time,
+          f."to" as follower
+  from (
+     select "profileId",
+       "followNFTId",
+       evt_block_time,
+       "to"
+     from lenshub_event_follownfttransferred
+     where "profileId" = :profile_id
+  ) f
+  inner join (
+     select "profileId",
+       "followNFTId",
+       max(evt_block_time) as evt_block_time 
+     from lenshub_event_follownfttransferred
+     where "profileId" = :profile_id
+     group by 1, 2
+  ) as d on d.evt_block_time = f.evt_block_time
+    and d."profileId" = f."profileId"
+    and d."followNFTId" = f."followNFTId"
+),
+
+-- return the default profile handle for each address
+profile_created_with_default_handle as (
+    select distinct p.current_owner as current_owner,
+      coalesce(d.handle, p.handle) as handle,
+      coalesce(d."profileId", p."profileId") as "profileId",
+      p.follower,
+      p.following
+    from profile_followers f
+    inner join lenshub_event_profilecreated p on f.follower = p.current_owner
+    left join lenshub_event_profilecreated d on p.current_owner = d.current_owner and d.is_default is true
+    where p.current_owner <> '0x0000000000000000000000000000000000000000'
 ),
 
 current_profile_new_followers as (
-    select f.*,
-        p.profile_id as follower_profile_id,
-        p.handle as follower_profile_handle
+    select p."profileId" as follower_profile_id,
+        p.handle as follower_profile_handle,
+        f.follower,
+        p.follower as follower_profile_followers_count,
+        p.following as follower_profile_following_count
     from profile_followers f
-    inner join profile_created p on f.follower = p.owner    -- filter only followers who have profiles
+    inner join profile_created_with_default_handle p on f.follower = p.current_owner -- filter only followers who have profiles
     inner join date_filter df on true
-    where f.profile_id = :profile_id
-        and to_timestamp(f.evt_block_time, 'YYYY/MM/DD HH24:MI:ss') >= df.start_date
+    where to_timestamp(f.evt_block_time, 'YYYY/MM/DD HH24:MI:ss') >= df.start_date
         and to_timestamp(f.evt_block_time, 'YYYY/MM/DD HH24:MI:ss') < df.end_date
         and f.follower <> '0x0000000000000000000000000000000000000000'
 ),
 
+-- Just count issued nft
 top_follower as (
     select c.follower_profile_id,
         c.follower_profile_handle,
-        count(*) as follower_profile_followers_count
+        follower_profile_followers_count,
+        follower_profile_following_count
     from current_profile_new_followers c
-    inner join profile_followers f on c.follower_profile_id = f.profile_id
-    where f.follower <> '0x0000000000000000000000000000000000000000'
-    group by 1, 2
     order by 3 desc
     limit 1
-),
-
-top_follower_following_summary as (
-    select count(f.profile_id) as top_follower_following_count
-    from top_follower t
-    inner join profile_created p on t.follower_profile_id = p.profile_id
-    inner join profile_followers f on p.owner = f.follower
-    where p.owner <> '0x0000000000000000000000000000000000000000'
 )
 
 select follower_profile_id as "followerProfileId",
     follower_profile_handle as "followerProfileHandle",
     follower_profile_followers_count as "followerProfileFollowersCount",
-    top_follower_following_count as "topFollowerFollowingCount"
-from top_follower
-inner join top_follower_following_summary on true;
-`;
+    follower_profile_following_count as "topFollowerFollowingCount"
+from top_follower;`;

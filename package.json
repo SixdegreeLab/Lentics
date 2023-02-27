@@ -13,7 +13,11 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:dump": "node ./lib/db_dump.mjs",
-    "db:build": "node ./lib/db_build.mjs"
+    "db:build": "node ./lib/db_build.mjs",
+    "db:lower": "node ./lib/db_hash_lower.mjs",
+    "coingecko": "node ./lib/coingecko.mjs",
+    "sync:profile": "node ./lib/profile_sync.mjs",
+    "cron:content": "node ./lib/content.mjs"
   },
   "devDependencies": {
     "eslint-config-custom": "*",

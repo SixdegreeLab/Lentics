@@ -6,13 +6,18 @@ export const Profile = sequelize.define('Profile', {
     // Model attributes are defined here
     profileId: {
         primaryKey: true,
-        type: DataTypes.STRING,
+        type: DataTypes.BIGINT,
         allowNull: false
     },
     owner: {
         type: DataTypes.STRING,
         allowNull: false,
-        field: 'to'
+        field: 'current_owner'
+    },
+    default: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        field: 'is_default'
     },
     handle: {
         type: DataTypes.STRING,
@@ -53,6 +58,6 @@ export const Profile = sequelize.define('Profile', {
     }
 }, {
     // Other model options go here
-    tableName: "profilecreated_vw",
+    tableName: "lenshub_event_profilecreated",
     timestamps: false
 });

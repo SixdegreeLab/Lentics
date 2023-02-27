@@ -10,42 +10,81 @@ import {
   engagementDailySql,
   engagementMonthlySql,
   profileTopFollowerSql,
+  RevenueSupportersSql,
+  RevenueSummarySql,
+  RevenueAmountByTokenSql,
+  RevenuePublicationSql,
+  topEngagementPostsSql,
+  topCollectedPostsSql
 } from 'db';
 import { QueryTypes, Op } from 'sequelize';
 
 import sequelize from '../../../packages/db/connection';
 
+const profileFilter = (addressOrHandle: string) => {
+  if (addressOrHandle.toLowerCase().startsWith('0x')) {
+    return { owner: addressOrHandle }
+  } else if (addressOrHandle.toLowerCase().endsWith('.lens')) {
+    return  { handle: addressOrHandle }
+  } else {
+    return { handle: `${addressOrHandle}.lens` }
+  }
+}
+
+const getObjectWithProfileId = async ({ addressOrHandle, profileId }) => {
+  if (!addressOrHandle && !profileId) {
+    return null
+  }
+  
+  if (profileId) {
+    return { profileId }
+  }
+  
+  return await Profile.findOne({
+    where: profileFilter(addressOrHandle),
+    order: [
+      ['default', 'desc']
+    ]
+  })
+}
+
 const resolvers = {
   Query: {
-    Profile: async (_, { address }, { walletWhitelist }) => {
+    Profile: async (_, { addressOrHandle }, { walletWhitelist }) => {
       const profile: any = await Profile.findOne({
-        where: {
-          owner: address
-        }
+        where: profileFilter(addressOrHandle),
+        order: [
+          ['default', 'desc']
+        ]
       });
       return {
         profile,
-        isInWhiteList: true, //walletWhitelist.includes(address), 20230109: 暂时屏蔽白名单的检查
+        isInWhiteList: true, //walletWhitelist.includes(addressOrHandle), 20230109: 暂时屏蔽白名单的检查
         whitelist: walletWhitelist
       };
     },
-    Profiles: async (_, { addresses }) => {
+    Profiles: async (_, { addresses, paginate={ offset: 0, limit: 30 } }) => {
       return Profile.findAll({
         where: {
           owner: addresses
-        }
+        },
+        order: [
+          ['default', 'desc']
+        ],
+        ...paginate
       });
     },
-    ProfileCount: async (_, { address, startDate, endDate }) => {
+    ProfileCount: async (_, { addressOrHandle, startDate, endDate }) => {
       const profile: any = await Profile.findOne({
-        where: {
-          owner: address
-        }
+        where: profileFilter(addressOrHandle),
+        order: [
+          ['default', 'desc']
+        ]
       });
       
       if (profile) {
         return {
-          owner: address,
+          owner: addressOrHandle,
           profileId: profile.profileId,
           postCount: Post.count({
             where: {
@@ -101,75 +140,91 @@ const resolvers = {
         }
       }
     },
-    Posts: (_, { profileId, startDate, endDate }) => {
+    Posts: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
       return Post.findAll({
         where: {
           profileId,
           blockTime: {
             [Op.between]: [(new Date(startDate)), (new Date(endDate))]
           }
-        }
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
       });
     },
-    Post: (_, { profileId, pubId }) => {
-      return Post.findOne({ where: { profileId: profileId, pubId: pubId } }); //TODO: remove type convertion here once db is updated.
-    },
-    Follows: (_, { profileIds, startDate, endDate }) => {
-      //return Follow.findAll();
-      //return Follow.findAll({ where: { profileIds: '80959' } }); //TODO: add paging
+    Followers: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
       return Follow.findAll({
         where: {
-          profileIds: {
-            [Op.overlap]: profileIds
-          },
+          profileId,
           blockTime: {
             [Op.between]: [(new Date(startDate)), (new Date(endDate))]
           }
-        }
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
       })
     },
-    Follow: (_, { profileId, follower }) => {
-      return Follow.findOne({
-        where: {
-          profileIds: {
-            [Op.overlap]: [profileId]
-          },
-          follower: follower
-        } });
-    },
-    Comments: (_, { profileId, startDate, endDate }) => {
+    Comments: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
       return Comment.findAll({
         where: {
-          [Op.or]: [
-            { profileId },
-            { profileIdPointed: profileId }
-          ],
+          profileId,
           blockTime: {
             [Op.between]: [(new Date(startDate)), (new Date(endDate))]
           }
-        }
-      }); //TODO: add paging
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
+      });
     },
-    Comment: (_, { profileId, pubId }) => {
-      return Comment.findOne({ where: { profileId: profileId + '', pubId: pubId + '' } }); //TODO: remove type convertion here once db is updated.
+    Commented: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
+      return Comment.findAll({
+        where: {
+          profileIdPointed: profileId,
+          blockTime: {
+            [Op.between]: [(new Date(startDate)), (new Date(endDate))]
+          }
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
+      });
     },
-    Mirrors: (_, { profileId, startDate, endDate }) => {
+    Mirrored: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
       return Mirror.findAll({
         where: {
-          [Op.or]: [
-            { profileId },
-            { profileIdPointed: profileId }
-          ],
+          profileIdPointed: profileId,
           blockTime: {
             [Op.between]: [(new Date(startDate)), (new Date(endDate))]
           }
-        }
-      }); //TODO: add paging
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
+      });
     },
-    Mirror: (_, { profileId, pubId }) => {
-      return Mirror.findOne({ where: { profileId: profileId + '', pubId: pubId + '' } }); //TODO: remove type convertion here once db is updated.
+    Mirrors: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
+      return Mirror.findAll({
+        where: {
+          profileId,
+          blockTime: {
+            [Op.between]: [(new Date(startDate)), (new Date(endDate))]
+          }
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
+      });
     },
-    Collects: (_, { profileId, startDate, endDate }) => {
+    Collected: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
       return Collect.findAll({
         where: {
           [Op.or]: [
@@ -179,19 +234,38 @@ const resolvers = {
           blockTime: {
             [Op.between]: [(new Date(startDate)), (new Date(endDate))]
           }
-        }
-      }); //TODO: add paging
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
+      });
     },
-    Collect: (_, { profileId, pubId }) => {
-      return Collect.findOne({ where: { profileId: profileId + '', pubId: pubId + '' } }); //TODO: remove type convertion here once db is updated.
-    },
-
-    Summary30Days: async (_, { address, date }) => {
+    Collects: async (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 30 } }) => {
       const profile: any = await Profile.findOne({
         where: {
-          owner: address
-        }
+          profileId
+        },
+        order: [
+          ['default', 'desc']
+        ]
       });
+      return Collect.findAll({
+        where: {
+          collector: profile.owner,
+          blockTime: {
+            [Op.between]: [(new Date(startDate)), (new Date(endDate))]
+          }
+        },
+        order: [
+          ['blockTime', 'desc']
+        ],
+        ...paginate
+      });
+    },
+
+    Summary30Days: async (_, { addressOrHandle, profileId, date }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
       if (profile) {
         return sequelize.query(
           engagementCounterSql,
@@ -204,17 +278,13 @@ const resolvers = {
         );
       }
     },
-    DailyChange: async (_, { address, date }) => {
-      const profile: any = await Profile.findOne({
-        where: {
-          owner: address
-        }
-      });
+    DailyChange: async (_, { addressOrHandle, profileId, startDate, endDate }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
       if (profile) {
         return sequelize.query(
           engagementChangeSql,
           {
-            replacements: { profile_id: profile.profileId, current_date: date },
+            replacements: { profile_id: profile.profileId, startDate, endDate },
             type: QueryTypes.SELECT,
             raw: true,
             plain: false
@@ -222,35 +292,13 @@ const resolvers = {
         );
       }
     },
-    DailyStatistics: async (_, { address }) => {
-      const profile: any = await Profile.findOne({
-        where: {
-          owner: address
-        }
-      });
-      if (profile) {
-        return sequelize.query(
-          engagementDailySql,
-          {
-            replacements: { profile_id: profile.profileId },
-            type: QueryTypes.SELECT,
-            raw: true,
-            plain: false
-          }
-        );
-      }
-    },
-    MonthlyStatistics: async (_, { address, date }) => {
-      const profile: any = await Profile.findOne({
-        where: {
-          owner: address
-        }
-      });
+    MonthlyStatistics: async (_, { addressOrHandle, profileId, startDate, endDate }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
       if (profile) {
         return sequelize.query(
           engagementMonthlySql,
           {
-            replacements: { profile_id: profile.profileId, date_of_month: date },
+            replacements: { profile_id: profile.profileId, startDate, endDate },
             type: QueryTypes.SELECT,
             raw: true,
             plain: true
@@ -258,24 +306,98 @@ const resolvers = {
         );
       }
     },
-    ProfileTopFollower: async (_, { address, date }) => {
-      const profile: any = await Profile.findOne({
-        where: {
-          owner: address
-        }
-      });
+    ProfileTopFollower: async (_, { addressOrHandle, profileId, startDate, endDate }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
       if (profile) {
         return sequelize.query(
           profileTopFollowerSql,
           {
-            replacements: { profile_id: profile.profileId, date_of_month: date },
+            replacements: { profile_id: profile.profileId, startDate, endDate },
             type: QueryTypes.SELECT,
             raw: true,
             plain: true
           }
         );
       }
-    }
+    },
+    RevenueSupporters: async (_, { addressOrHandle, profileId, startDate, endDate, paginate={ offset: 0, limit: 50 } }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
+      if (profile) {
+        return sequelize.query(
+          RevenueSupportersSql,
+          {
+            replacements: { profile_id: profile.profileId, startDate, endDate, ...paginate },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: false
+          }
+        );
+      }
+    },
+    RevenueSummary: async (_, { addressOrHandle, profileId, startDate, endDate }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
+      if (profile) {
+        const revenueSummary = await sequelize.query(
+          RevenueSummarySql,
+          {
+            replacements: { profile_id: profile.profileId, startDate, endDate },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: true
+          }
+        );
+        const revenueAmountByToken = await sequelize.query(
+          RevenueAmountByTokenSql,
+          {
+            replacements: { profile_id: profile.profileId, startDate, endDate },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: false
+          }
+        );
+        return {
+          ...revenueSummary,
+          revenueAmountByToken
+        }
+      }
+    },
+
+    RevenuePublications: async (_, { addressOrHandle, profileId, startDate, endDate, paginate={ offset: 0, limit: 50 } }) => {
+      const profile: any = await getObjectWithProfileId({ addressOrHandle, profileId });
+      if (profile) {
+        return sequelize.query(
+          RevenuePublicationSql,
+          {
+            replacements: { profile_id: profile.profileId, startDate, endDate, ...paginate },
+            type: QueryTypes.SELECT,
+            raw: true,
+            plain: false
+          }
+        );
+      }
+    },
+    TopEngagementPosts: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 10 } }) => {
+      return sequelize.query(
+        topEngagementPostsSql,
+        {
+          replacements: { profile_id: profileId, startDate, endDate, ...paginate },
+          type: QueryTypes.SELECT,
+          raw: true,
+          plain: false
+        }
+      );
+    },
+    TopCollectedPosts: (_, { profileId, startDate, endDate, paginate={ offset: 0, limit: 10 } }) => {
+      return sequelize.query(
+        topCollectedPostsSql,
+        {
+          replacements: { profile_id: profileId, startDate, endDate, ...paginate },
+          type: QueryTypes.SELECT,
+          raw: true,
+          plain: false
+        }
+      );
+    },
 
   }
 }

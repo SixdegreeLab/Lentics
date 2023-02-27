@@ -16,6 +16,9 @@ body {
   margin: auto;
 }
 
+:focus-visible{
+  outline: none;
+}
 body > #content-wrapper{
   width: 100%;
   height: 100%;
@@ -51,12 +54,18 @@ body > #content-wrapper > div{
 }
 
 .page_content{
-  height: 100%;
+  height: calc(100% - 0.25rem);
   width: 100%;
 }
-
+a.link{
+  cursor: pointer;
+  @apply text-purple-900;
+}
 a:hover{
-  @apply text-purple-800;
+  @apply text-purple-600;
+}
+.win-link::after{
+  content: '\29C9';
 }
 
 .shimmer {
@@ -280,6 +289,9 @@ div[data-lexical-editor='true'] {
 @layer components {
   .min-h-56 {
     min-height: theme(height.56);
+  }
+  .min-h-48 {
+    min-height: theme(height.48);
   }
   .min-h-80 {
     min-height: theme(height.80);

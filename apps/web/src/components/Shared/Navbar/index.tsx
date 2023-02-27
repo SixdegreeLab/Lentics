@@ -3,9 +3,10 @@ import type { FC } from 'react';
 import { useEffect, useState, useRef, Fragment } from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { Menu, Transition } from '@headlessui/react';
-import SignInDialog from '@components/Shared/Navbar/signin';
 import MobileMenuItems from '@components/Shared/Navbar/mobilemenuitem';
 import { DEMO_USER_ADDRESS } from 'data/constants';
+import { MixpanelTracking } from "@lib/mixpanel";
+import Image from 'next/image'
 
 import {
   useAccount,
@@ -15,6 +16,8 @@ import {
   createClient,
   useSignMessage
 } from 'wagmi';
+import dynamic from 'next/dynamic'
+const DynamicSignInDialog = dynamic(() => import('@components/Shared/Navbar/signin'));
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -26,9 +29,9 @@ export type NavbarProps = {
 }
 
 
-const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
+const Navbar: FC<NavbarProps> = () => {
   const router = useRouter();
-  const defaultAvatar = '/icon2.png'
+  const defaultAvatar = '/avatar.jpg'
   const { address='', connector, isConnected } = useAccount()
   const { data: session, status } = useSession()
   const sessionInfo = session ? {
@@ -39,11 +42,12 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
   const [walletInfo, setWalletInfo] = useState(sessionInfo);
   const { disconnect } = useDisconnect()
   const [isOpenDialog, setIsOpenDialog] = useState(false)
-  const [isDisplayAvatar, setIsDisplayAvatar] = useState(false)
+  const [avatarSrc, setAvatarSrc] = useState<any>(walletInfo?.image)
   const isIndexPage = router.pathname === '/'
   
   useEffect(() => {
     if (session) {
+      setAvatarSrc(session.user.image??defaultAvatar)
       setWalletInfo({
         address,
         name: session.user.name??'',
@@ -57,6 +61,7 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
     e.preventDefault();
     disconnect();
     signOut();
+    MixpanelTracking.getInstance().signOut({address: walletInfo?.address});
   }
 
   const handleViewSelf = (e: any) => {
@@ -74,22 +79,14 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
     setIsOpenDialog(true)
   }
   
-  const handleAvatarLoad = () => {
-    setIsDisplayAvatar(true)
+  const handleLoadingComplete = ({ naturalWidth=0 }) => {
+    if (!naturalWidth) {
+      setAvatarSrc(defaultAvatar)
+    }
   }
-  
-  const handleAvatarError = () => {
-    setIsDisplayAvatar(false)
-  }
-
-  const image = useRef<HTMLImageElement>(null)
-  useEffect(() => {
-    // Browser cache not trigger onload.
-    if (image.current && image.current.complete) setIsDisplayAvatar(true)
-  }, [])
 
   return (
-    <nav className={`w-full flex items-center justify-between md:justify-end px-4 h-16 ${isIndexPage ? 'border-b-0' : 'border-b-2'} border-gray-300`}>
+    <nav className={`w-full mt-1 flex items-center justify-between md:justify-end md:px-4 xl:px-4 h-16 ${isIndexPage ? 'border-b-0' : 'border-b-2'} border-gray-300`}>
       {
         walletInfo ? (
           <>
@@ -97,26 +94,27 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
               {
                 isIndexPage && (<h3 className="inline text-3xl font-bold">Analytics</h3>)
               }
-              {
-                !isIndexPage && (<>
-                  <h3 className="inline text-3xl font-bold">{addressName}</h3>
-                  <span>{addressHandle}</span>
-                </>)
-              }
             </div>
             <MobileMenuItems />
             <Menu as="div" className="relative inline-block text-left">
               <div>
                 <Menu.Button as={Fragment}>
-                  <div className="w-[50px] rounded-full overflow-hidden">
-                    <img src={defaultAvatar} alt="default avatar" className={isDisplayAvatar ? 'hidden' : ''} />
-                    <img
-                      ref={image}
-                      src={walletInfo.image}
-                      alt="avatar"
-                      onError={handleAvatarError}
-                      onLoad={handleAvatarLoad}
-                      className={!isDisplayAvatar ? 'hidden' : ''} />
+                  <div className="flex items-center space-x-2 cursor-pointer">
+                    {
+                      !isIndexPage && (<div className="hidden md:block">
+                        {walletInfo?.handle ?? walletInfo?.name}
+                      </div>)
+                    }
+                    <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
+                      <Image src={avatarSrc}
+                             placeholder="blur"
+                             blurDataURL="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkkI39DwACGgF7lpEkjAAAAABJRU5ErkJggg=="
+                             width={100}
+                             height={100}
+                             onLoadingComplete={handleLoadingComplete}
+                             alt={walletInfo.handle}
+                             priority/>
+                    </div>
                   </div>
                 </Menu.Button>
               </div>
@@ -180,16 +178,16 @@ const Navbar: FC<NavbarProps> = ({ addressName='', addressHandle='' }) => {
           </>
         ) : (
           <>
-            <div className="hidden md:flex-grow space-x-2">
+            <div className="flex-grow space-x-2 hidden md:block">
               {
                 isIndexPage && (<h3 className="inline text-3xl font-bold">Analytics</h3>)
               }
             </div>
             <MobileMenuItems />
-            <button className="mt-2 flex justify-center rounded border border-transparent bg-[#5CC87EFF] px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
+            <button className="flex justify-center rounded border border-transparent bg-[#5CC87EFF] px-4 py-2 text-sm font-medium text-white hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" onClick={handleConnectWallet}>
               Connect Wallet
             </button>
-            <SignInDialog
+            <DynamicSignInDialog
               isOpen={isOpenDialog}
               closeModal={() => setIsOpenDialog(false)}
               setWalletInfo={setWalletInfo}/>

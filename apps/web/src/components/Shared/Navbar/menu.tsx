@@ -53,7 +53,7 @@ const Menu: FC = () => {
     return (
       <>
         <NavItem url={`/overview/${address}`} name="Overview" current={pathname == '/overview/[address]'} icon="Squares2X2" />
-        <NavItem url={`/engagement/${address}`} name="Engagement" current={pathname == '/engagement/[address]'} icon="Users" />
+        {/*<NavItem url={`/engagement/${address}`} name="Engagement" current={pathname == '/engagement/[address]'} icon="Users" />*/}
         <NavItem url={`/publication/${address}`} name="Publication" current={pathname == '/publication/[address]'} icon="PencilSquare" />
         <NavItem url={`/follower/${address}`} name="Follower" current={pathname == '/follower/[address]'} icon="UserPlus" />
         <NavItem url={`/collect/${address}`} name="Collect" current={pathname == '/collect/[address]'} icon="ViewColumns" />

@@ -28,13 +28,24 @@ export const Follow = sequelize.define('Follow', {
     },
     follower: {
         type: DataTypes.STRING,
-        allowNull: false
-    },
-    profileIds: {
-        primaryKey: true,
-        type: DataTypes.ARRAY(DataTypes.BIGINT),
         allowNull: false,
-        field: 'profileIds'
+        field: 'to'
+    },
+    profileId: {
+        primaryKey: true,
+        type: DataTypes.BIGINT,
+        allowNull: false,
+        field: 'profileId'
+    },
+    followerHandle: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: 'followerHandle'
+    },
+    followerProfileId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: 'followerProfileId'
     },
     timestamp: {
         type: DataTypes.STRING,
@@ -42,6 +53,6 @@ export const Follow = sequelize.define('Follow', {
     }
 }, {
     // Other model options go here
-    tableName: "lenshub_event_followed",
+    tableName: "follow_transferred_vw",
     timestamps: false
 });

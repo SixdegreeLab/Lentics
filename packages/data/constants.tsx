@@ -21,10 +21,14 @@ export const getIPFSLink = (hash: string): string => {
     .replace('ipfs://', IPFS_GATEWAY);
 };
 
-// lenster
+// lenster cdn
 export const IMGPROXY_URL = 'https://media.lenster.xyz';
 export const getAvatarFromLenster = (url: string) => (
-  `${IMGPROXY_URL}/tr:n-avatar,tr:di-placeholder.webp/${url}`
+  `${IMGPROXY_URL}?name=avatar&image=${url}`
+)
+
+export const getPostImageFromLenster = (url: string) => (
+  `${IMGPROXY_URL}?name=attachment&image=${url}`
 )
 
 const getEnvConfig = () => {

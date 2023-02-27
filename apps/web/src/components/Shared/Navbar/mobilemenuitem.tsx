@@ -16,6 +16,8 @@ import clsx from 'clsx';
 import {
   useAccount,
 } from 'wagmi';
+import Image from 'next/image'
+import LenticsShortLogo from '../../../../public/logo-short.svg';
 
 const MobileMenuItems: FC = () => {
   const { query } = useRouter();
@@ -24,7 +26,7 @@ const MobileMenuItems: FC = () => {
 
   const links = [
     { href: `/overview/${address}`, label: 'Overview', icon: 'Squares2X2' },
-    { href: `/engagement/${address}`, label: 'Engagement', icon: 'Users' },
+    //{ href: `/engagement/${address}`, label: 'Engagement', icon: 'Users' },
     { href: `/publication/${address}`, label: 'Publication', icon: 'PencilSquare' },
     { href: `/follower/${address}`, label: 'Follower', icon: 'UserPlus' },
     { href: `/collect/${address}`, label: 'Collect', icon: 'ViewColumns' },
@@ -91,12 +93,12 @@ const MobileMenuItems: FC = () => {
         </>
       )}
       </Menu>
-      <img
+      <Image
         className="w-8 h-8 md:hidden"
-        style={{width: 'auto', height: '40px'}}
-        src='/logo-short.svg'
-        alt="Logo"
-      />
+        src={LenticsShortLogo}
+        height={40}
+        alt="Lentics"
+        priority/>
     </>
   );
 };

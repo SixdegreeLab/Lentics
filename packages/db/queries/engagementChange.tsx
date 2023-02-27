@@ -16,7 +16,7 @@ export const engagementChangeSql = `with content_type(content_type_id, content_t
 ),
 
 date_series as (
-    select generate_series(date(:current_date) - interval '30' day, date(:current_date), '1 day') as block_date
+    select generate_series(date(:startDate), date(:endDate) - interval '1' day, '1 day') as block_date
 ),
 
 content_detail as (
@@ -25,6 +25,8 @@ content_detail as (
       1 as content_type_id
     from lenshub_event_postcreated
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -33,6 +35,8 @@ content_detail as (
       2 as content_type_id
     from lenshub_event_commentcreated
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -41,6 +45,8 @@ content_detail as (
       3 as content_type_id
     from lenshub_event_commentcreated
     where "profileIdPointed" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -49,6 +55,8 @@ content_detail as (
       4 as content_type_id
     from lenshub_event_mirrorcreated
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -57,6 +65,8 @@ content_detail as (
       5 as content_type_id
     from lenshub_event_mirrorcreated
     where "profileIdPointed" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -64,8 +74,10 @@ content_detail as (
       p."profileId" as profile_id,
       6 as content_type_id
     from lenshub_event_collected c
-    inner join lenshub_event_profilecreated p on c.collector = p."to"
+    inner join lenshub_event_profilecreated p on c.collector = p."current_owner"
     where p."profileId" = :profile_id
+    and c.evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and c.evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -74,6 +86,8 @@ content_detail as (
       7 as content_type_id
     from lenshub_event_collected
     where "profileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -83,6 +97,8 @@ content_detail as (
     from lenshub_event_collected
     where "profileId" <> "rootProfileId"
     and "rootProfileId" = :profile_id
+    and evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -90,9 +106,11 @@ content_detail as (
       p."profileId" as profile_id,
       8 as content_type_id
     from lenshub_event_followed f
-    inner join lenshub_event_profilecreated p on f.follower = p."to"
+    inner join lenshub_event_profilecreated p on f.follower = p."current_owner"
     cross join unnest("profileIds") as tbl(profile_id)
     where p."profileId" = :profile_id
+    and f.evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and f.evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     union all
 
@@ -101,7 +119,9 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
-    where tbl.profile_id = :profile_id
+    where f."profileIds" && ARRAY[:profile_id::bigint]
+    and f.evt_block_time >= TO_CHAR(date(:startDate), 'YYYY/MM/DD HH24:MI:ss')
+    and f.evt_block_time < TO_CHAR(date(:endDate), 'YYYY/MM/DD HH24:MI:ss')
 
     --TODO: Liked and Mentioned
 ),
@@ -122,7 +142,7 @@ engagement_summary as (
     from content_summary c
     inner join content_type ct on c.content_type_id = ct.content_type_id
     where profile_id = :profile_id
-        and c.block_date >= date(:current_date) - interval '30' day
+        and c.block_date >= date(:startDate)
     group by 1
 ),
 
@@ -143,7 +163,7 @@ publication_summary as (
         sum(content_count) as publication_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (1, 2, 4)    -- Post + Comment + Mirror
     group by 1
 ),
@@ -162,7 +182,7 @@ publication_post_summary as (
         sum(content_count) as publication_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (1)    -- Post
     group by 1
 ),
@@ -179,7 +199,7 @@ publication_comment_summary as (
         sum(content_count) as publication_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (2)    -- Comment
     group by 1
 ),
@@ -196,7 +216,7 @@ publication_mirror_summary as (
         sum(content_count) as publication_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (4)    -- Mirror
     group by 1
 ),
@@ -213,7 +233,7 @@ follower_summary as (
         sum(content_count) as follower_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (9)    -- Followed
     group by 1
 ),
@@ -232,7 +252,7 @@ commented_summary as (
         sum(content_count) as commented_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (3)    -- Commented
     group by 1
 ),
@@ -251,7 +271,7 @@ mirrored_summary as (
         sum(content_count) as mirrored_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (5)    -- Mirrored
     group by 1
 ),
@@ -265,12 +285,22 @@ mirrored_change as (
     order by block_date
 ),
 
+collect_summary as (
+    select block_date,
+        sum(content_count) as collect_count
+    from content_summary
+    where profile_id = :profile_id
+        and block_date >= date(:startDate)
+        and content_type_id in (6)    -- Collect
+    group by 1
+),
+
 collected_summary as (
     select block_date,
         sum(content_count) as collected_count
     from content_summary
     where profile_id = :profile_id
-        and block_date >= date(:current_date) - interval '30' day
+        and block_date >= date(:startDate)
         and content_type_id in (7)    -- Collected
     group by 1
 ),
@@ -281,6 +311,139 @@ collected_change as (
         lag(collected_count, 1) over (order by block_date) as collected_count_previous,
         collected_count - coalesce(lag(collected_count, 1) over (order by block_date), collected_count) as collected_count_change
     from collected_summary
+    order by block_date
+),
+
+paid_collect_detail as (
+    select evt_tx_hash,
+        evt_block_time,
+        date_trunc('day', to_timestamp(evt_block_time, 'YYYY/MM/DD HH24:MI:ss')) as block_date,
+        collector,
+        "profileId",
+        "pubId",
+        "profileId" || '-' || "pubId" as publication_id,
+        "rootProfileId",
+        "rootPubId",
+        "rootProfileId" || '-' || "rootPubId" as root_publication_id,
+        '0x' || substring("collectModuleData", 3 + 24, 40) as token_contract_address, -- Start from 3, with 24 of "0" + 40 of address chars
+        cast(hex2numeric('0x' || substring("collectModuleData", 3 + 64, 64)) as double precision) as paid_amount
+    from lenshub_event_collected
+    where length("collectModuleData") > 2 + 64 -- paid collect contains two parts, '0x' + 64 + 64
+        and "rootProfileId" = :profile_id
+),
+
+paid_follow_detail as (
+    select evt_tx_hash,
+        evt_block_time,
+        date_trunc('day', to_timestamp(evt_block_time, 'YYYY/MM/DD HH24:MI:ss')) as block_date,
+        follower,
+        "profileIds"[1] as "profileId",
+        '0x' || substring("followModuleDatas"[1], 3 + 24, 40) as token_contract_address, -- Start from 3, with 24 of "0" + 40 of address chars
+        cast(hex2numeric('0x' || substring("followModuleDatas"[1], 3 + 64, 64)) as double precision) as paid_amount
+    from lenshub_event_followed
+    where cardinality("followModuleDatas") > 0
+        and length("followModuleDatas"[1]) > 2 + 64 -- paid follow contains two parts, 2 + 64 + 64
+        and "profileIds" && ARRAY[:profile_id::bigint]
+),
+
+paid_transaction_detail_combined as (
+    select evt_tx_hash,
+        evt_block_time,
+        block_date,
+        collector as user_address,
+        "profileId",
+        token_contract_address,
+        paid_amount
+    from paid_collect_detail
+    
+    union all 
+    
+    select evt_tx_hash,
+        evt_block_time,
+        block_date,
+        follower as user_address,
+        "profileId",
+        token_contract_address,
+        paid_amount
+    from paid_follow_detail
+),
+
+latest_token_price as (
+    select contract_address, symbol, decimals, price, minute
+    from (
+        select row_number() over (partition by contract_address order by minute desc) as row_num, *
+        from price_usd pu
+        join coin c on pu.coin_id = c.id
+        where contract_address in ( 
+                select distinct token_contract_address from paid_transaction_detail_combined 
+            )
+        order by minute desc
+    ) p
+    where row_num = 1
+    
+    union all
+    
+    select '0xd838290e877e0188a4a44700463419ed96c16107' as contract_address,
+        'NCT' as symbol,
+        18 as decimals,
+        1.69 as price, -- as of date 2023-01-17
+        date('2023-01-17') as minute
+),
+
+revenue_summary as (
+    select date_trunc('day', to_timestamp(evt_block_time, 'YYYY/MM/DD HH24:MI:ss')) as block_date,
+        (case when publication_id = root_publication_id then 'Collect Post' else 'Collect Mirrored' end) as action_type,
+        count(*) as transaction_count,
+        trunc(sum(paid_amount / pow(10, decimals) * price)::numeric, 2) as paid_amount_usd
+    from paid_collect_detail d
+    inner join latest_token_price p on d.token_contract_address = p.contract_address
+    where token_contract_address <> '0x0000000000000000000000000000000000000000' -- exclude zero address
+    group by 1, 2
+    
+    union all
+    
+    select date_trunc('day', to_timestamp(evt_block_time, 'YYYY/MM/DD HH24:MI:ss')) as block_date,
+        'Follow Profile' as action_type,
+        count(*) as transaction_count,
+        trunc(sum(paid_amount / pow(10, decimals) * price)::numeric, 2) as paid_amount_usd
+    from paid_follow_detail d
+    inner join latest_token_price p on d.token_contract_address = p.contract_address
+    where token_contract_address <> '0x0000000000000000000000000000000000000000' -- exclude zero address
+    group by 1, 2
+),
+
+revenue_change as (
+    select block_date,
+      sum(paid_amount_usd) as paid_amount_usd
+    from revenue_summary
+    group by 1
+    order by block_date
+),
+
+revenue_collect_post_change as (
+    select block_date,
+      sum(paid_amount_usd) as paid_amount_usd
+    from revenue_summary
+    where action_type = 'Collect Post'
+    group by 1
+    order by block_date
+),
+
+revenue_collect_mirrored_change as (
+    select block_date,
+      sum(paid_amount_usd) as paid_amount_usd
+    from revenue_summary
+    where action_type = 'Collect Mirrored'
+    group by 1
+    order by block_date
+),
+
+revenue_follow_profile_change as (
+    select block_date,
+      sum(paid_amount_usd) as paid_amount_usd
+    from revenue_summary
+    where action_type = 'Follow Profile'
+    group by 1
     order by block_date
 )
 
@@ -295,7 +458,12 @@ select :profile_id as "profileId",
     coalesce(f.follower_count, 0) as "followerCountChange",
     coalesce(c.commented_count, 0) as "commentedCountChange",
     coalesce(m.mirrored_count, 0) as "mirroredCountChange",
-    coalesce(cl.collected_count, 0) as "collectedCountChange"
+    coalesce(cs.collect_count, 0) as "collectCountChange",
+    coalesce(cl.collected_count, 0) as "collectedCountChange",
+    coalesce(rc.paid_amount_usd, 0) as "revenueCountChange",
+    coalesce(rpc.paid_amount_usd, 0) as "revenueCollectPostCountChange",
+    coalesce(rmc.paid_amount_usd, 0) as "revenueCollectMirroredCountChange",
+    coalesce(rfc.paid_amount_usd, 0) as "revenueFollowProfileCountChange"
 from date_series d
 left join engagement_change e on d.block_date = e.block_date
 left join publication_change p on d.block_date = p.block_date
@@ -306,5 +474,10 @@ left join follower_change f on d.block_date = f.block_date
 left join commented_change c on d.block_date = c.block_date
 left join mirrored_change m on d.block_date = m.block_date
 left join collected_change cl on d.block_date = cl.block_date
+left join revenue_change rc on d.block_date = rc.block_date
+left join revenue_collect_post_change rpc on d.block_date = rpc.block_date
+left join revenue_collect_mirrored_change rmc on d.block_date = rmc.block_date
+left join revenue_follow_profile_change rfc on d.block_date = rfc.block_date
+left join collect_summary cs on d.block_date = cs.block_date
 order by d.block_date;
 `;

@@ -60,7 +60,7 @@ content_detail as (
       p."profileId" as profile_id,
       6 as content_type_id
     from lenshub_event_collected c
-    inner join lenshub_event_profilecreated p on c.collector = p."to"
+    inner join lenshub_event_profilecreated p on c.collector = p."current_owner"
     where p."profileId" = :profile_id
 
     union all
@@ -86,7 +86,7 @@ content_detail as (
       p."profileId" as profile_id,
       8 as content_type_id
     from lenshub_event_followed f
-    inner join lenshub_event_profilecreated p on f.follower = p."to"
+    inner join lenshub_event_profilecreated p on f.follower = p."current_owner"
     cross join unnest("profileIds") as tbl(profile_id)
     where p."profileId" = :profile_id
 
@@ -97,7 +97,7 @@ content_detail as (
       9 as content_type_id
     from lenshub_event_followed f
     cross join unnest("profileIds") as tbl(profile_id)
-    where tbl.profile_id = :profile_id
+    where f."profileIds" && ARRAY[:profile_id::bigint]
 
     --TODO: Liked and Mentioned
 ),

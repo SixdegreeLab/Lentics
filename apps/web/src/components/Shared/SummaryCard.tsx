@@ -1,57 +1,9 @@
-import { useState } from "react";
 import ParentSize from '@visx/responsive/lib/components/ParentSize';
-import InfoCircle from '@components/Shared/Icon/InfoCircle';
 import CurveLinearClosed, { CurveData } from '@components/Shared/Chart/DailyChangesLinear';
 import ArrowSmallUp from '@components/Shared/Icon/ArrowSmallUp';
 import ArrowSmallDown from '@components/Shared/Icon/ArrowSmallDown';
-import { Popover } from '@headlessui/react'
-import { usePopper } from 'react-popper'
+import SummaryModalTip from '@components/Shared/Summary/SummaryModalTip';
 import Link from 'next/link';
-
-const MyPopover = ({ children }) => {
-  let [referenceElement, setReferenceElement]: any = useState(null);
-  let [popperElement, setPopperElement]: any = useState(null);
-  const [isShowing, setIsShowing] = useState(false)
-  let { styles, attributes }  = usePopper(referenceElement, popperElement, {
-    placement: "auto",
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 5],
-        },
-      },
-    ]
-  })
-
-  return (
-    <Popover>
-      <Popover.Button
-        onMouseEnter={() => setIsShowing(true)}
-        onMouseLeave={() => setIsShowing(false)}
-        onTouchStartCapture={() => setIsShowing(true)}
-        onTouchEndCapture={() => setIsShowing(false)}
-        ref={setReferenceElement}>
-        <InfoCircle />
-      </Popover.Button>
-
-      {
-        isShowing && (
-          <Popover.Panel
-            ref={setPopperElement}
-            style={styles.popper}
-            {...attributes.popper}
-            static
-          >
-            <div className="p-3 max-w-40 text-sm font-light text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
-              {children}
-            </div>
-          </Popover.Panel>
-        )
-      }
-    </Popover>
-  )
-};
 
 export type SummaryCardProps = {
   title: string;
@@ -85,15 +37,15 @@ export default ({ title,
         {
           titleHint && (
             <div className="text-gray-500">
-              <MyPopover>
+              <SummaryModalTip title={ title }>
                 {titleHint}
-              </MyPopover>
+              </SummaryModalTip>
             </div>
           )
         }
       </div>
       <div className="flex h-24">
-        <div className="w-1/3 h-full font-bold text-3xl overflow-hidden break-all leading-9 pt-6">
+        <div className="w-1/3 h-full font-bold text-2xl overflow-hidden break-all leading-9 pt-6">
           { count ?? 0 }
         </div>
         <div className="w-2/3 h-full pt-10">

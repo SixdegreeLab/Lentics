@@ -20,7 +20,7 @@ const Layout: FC<Props> = ({ children }) => {
       <Toaster position="top-center" toastOptions={getToastOptions(resolvedTheme)} />
       <div id="content-wrapper" className='w-full mx-auto h-screen flex overflow-hidden'>
         <Aside />
-        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none xl:order-last ml-3">
+        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none xl:order-last ml-3 pr-3">
           {children}
         </main>
       </div>

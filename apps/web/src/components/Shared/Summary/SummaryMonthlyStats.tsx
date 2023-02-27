@@ -1,4 +1,5 @@
 import React from 'react';
+import { toFixedWithoutRound } from '../../../pages/overview/[address]';
 
 export type MonthlyData = {
   engagementScore: number;
@@ -6,6 +7,7 @@ export type MonthlyData = {
   followerCount: number;
   collectedCount: number;
   contentCount: number;
+  revenueCount: number;
   profileId: number;
   topEngagementPostId: number;
   topCommentedPostId: number;
@@ -35,10 +37,10 @@ const SummaryMonthlyStats: React.FC<SummaryMonthlyStatsProps> = ({ monthlyData }
         <h6>Collects</h6>
         <div>{monthlyData?.collectedCount ?? 0}</div>
       </div>
-      {/*<div className="overview-summary-month-item">
+      <div className="overview-summary-month-item">
         <h6>Revenue</h6>
-        <div>{monthlyData?.contentCount ?? 0}</div>
-      </div>*/}
+        <div>${toFixedWithoutRound(monthlyData?.revenueCount) ?? 0}</div>
+      </div>
     </div>
   )
 }

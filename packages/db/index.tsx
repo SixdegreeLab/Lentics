@@ -9,3 +9,7 @@ export * from "./queries/engagementChange";
 export * from "./queries/engagementDaily";
 export * from "./queries/engagementMonthly";
 export * from "./queries/profileTopFollower";
+export * from "./queries/RevenueSupporters";
+export * from "./queries/RevenueCounter";
+export * from "./queries/RevenuePublication";
+export * from "./queries/TopPublication";

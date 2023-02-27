@@ -3,6 +3,7 @@ import { getCsrfToken, signIn } from "next-auth/react";
 import { SiweMessage } from "siwe";
 import { Transition, Dialog } from '@headlessui/react';
 import Spin from '@components/Shared/Spin';
+import { MixpanelTracking } from "@lib/mixpanel";
 
 import {
   useAccount,
@@ -51,6 +52,7 @@ const SignInDialog =(props: { isOpen: boolean, closeModal: any, setWalletInfo: a
         setIsLogging(false);
         setWalletInfo(null)
       }
+      MixpanelTracking.getInstance().signIn({address});
     } catch (error) {
       console.error("catch: ", error);
       setIsLogging(false);
